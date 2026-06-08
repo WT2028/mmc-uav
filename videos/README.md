@@ -1,11 +1,11 @@
 # Validation videos
 
-Place the recorded validation videos here after the simulation views are tuned.
-Suggested names:
+This directory stores the curated demonstration videos referenced from the
+repository README.
 
-- `experiment_a_nominal_transfer.mp4`
-- `experiment_b_yaw_coordination.mp4`
-- `experiment_c_parameter_scan.mp4`
-- `experiment_d_wind_ndo_comparison.mp4`
+- `experiment_a_ab_hold.mp4` — nominal A→B point transfer and hold
+- `experiment_b_ab_yaw_step.mp4` — A→B transfer with yaw-step hold
+- `experiment_d_wind_ndo_on.mp4` — 3 m/s wind disturbance with NDO enabled
 
-Large videos may be better managed with Git LFS before publishing.
+The README uses lightweight GIF previews under `docs/media/previews/` and links
+them to these MP4 files for full viewing/downloading on GitHub.

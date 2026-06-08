@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com)
      Commit Version: 1.6.0-1-g15f4949  Build Version: 1.6.7594.29634
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
@@ -444,7 +444,7 @@
       <rotorDragCoefficient>0.0</rotorDragCoefficient>
       <rollingMomentCoefficient>0.0</rollingMomentCoefficient>
       <motorSpeedPubTopic>motor_speed/upper</motorSpeedPubTopic>
-      <rotorVelocitySlowdownSim>1</rotorVelocitySlowdownSim>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
       <motorType>velocity</motorType>
     </plugin>
     <plugin
@@ -464,7 +464,7 @@
       <rotorDragCoefficient>0.0</rotorDragCoefficient>
       <rollingMomentCoefficient>0.0</rollingMomentCoefficient>
       <motorSpeedPubTopic>motor_speed/lower</motorSpeedPubTopic>
-      <rotorVelocitySlowdownSim>1</rotorVelocitySlowdownSim>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
       <motorType>velocity</motorType>
     </plugin>
 
@@ -476,7 +476,7 @@
       <odom_topic>/model/mmc_uav/odometry</odom_topic>
       <dimensions>3</dimensions>
     </plugin>
-    
+
     </gazebo>
 
   <gazebo reference="base_link">

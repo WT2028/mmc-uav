@@ -3,27 +3,20 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, SetEnvironmentVariable, TimerAction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
-from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
-    # Resolve resources from installed ROS 2 package shares so the open-source
-    # skeleton is not tied to the original development workspace path.
-    control_share_dir = get_package_share_directory('mmc_control')
-    description_share_dir = get_package_share_directory('mmc_uav_description')
+    # 自动获取当前用户主目录，构建绝对路径，避免路径错误
+    home_dir = os.path.expanduser('~')
+    ws_src_dir = os.path.join(home_dir, 'mmc_ws', 'src')
 
-    urdf_path = os.path.join(description_share_dir, 'urdf', 'mmc_uav.urdf')
-    default_world_path = os.path.join(description_share_dir, 'worlds', 'empty_world.sdf')
-    bridge_yaml_path = os.path.join(control_share_dir, 'config', 'ros_gz_bridge_mmc.yaml')
-    rviz_config_path = os.path.join(control_share_dir, 'config', 'mmc_rviz.rviz')
-    pj_layout_path = os.path.join(control_share_dir, 'config', 'mmc_pj_layout.xml')
-    gazebo_resource_paths = [os.path.dirname(description_share_dir)]
-    existing_resource_path = os.environ.get('GZ_SIM_RESOURCE_PATH')
-    if existing_resource_path:
-        gazebo_resource_paths.append(existing_resource_path)
-    gazebo_resource_path = os.pathsep.join(gazebo_resource_paths)
+    urdf_path = os.path.join(ws_src_dir, 'mmc_uav_description', 'urdf', 'mmc_uav.urdf')
+    default_world_path = os.path.join(ws_src_dir, 'mmc_uav_description', 'worlds', 'wind_x3_hover_hold_world.sdf')
+    bridge_yaml_path = os.path.join(ws_src_dir, 'mmc_control', 'config', 'ros_gz_bridge_mmc.yaml')
+    rviz_config_path = os.path.join(ws_src_dir, 'mmc_control', 'config', 'mmc_rviz.rviz')
+    pj_layout_path = os.path.join(ws_src_dir, 'mmc_control', 'config', 'mmc_pj_layout.xml')
     uav_model_path = LaunchConfiguration('uav_model_path')
     world_path = LaunchConfiguration('world_sdf_path')
     enable_gui = LaunchConfiguration('enable_gui')
@@ -78,13 +71,14 @@ def generate_launch_description():
     auto_scene_yaw_ref_mode = LaunchConfiguration('auto_scene_yaw_ref_mode')
     auto_scene_yaw_step_deg = LaunchConfiguration('auto_scene_yaw_step_deg')
     auto_scene_yaw_ramp_duration = LaunchConfiguration('auto_scene_yaw_ramp_duration')
+    auto_scene_coupled_yaw_thrust_boost_ratio = LaunchConfiguration('auto_scene_coupled_yaw_thrust_boost_ratio')
     # 统一用一个开关同时控制：
     # 1) controller 是否接收手动 XY 指令
     # 2) keyboard teleop 窗口是否随 launch 自动启动
     manual_xy_enabled = False
 
     # 1. 设置模型资源路径环境变量
-    set_env = SetEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=gazebo_resource_path)
+    set_env = SetEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=ws_src_dir)
 
     # 2. 显式分离 Gazebo server / GUI：
     #    - `gz sim <world>` 会额外 fork `gz sim server`，launch 只跟踪前台包装进程，
@@ -197,6 +191,7 @@ def generate_launch_description():
             'rotor_motor_time_constant_up': ParameterValue(rotor_motor_time_constant_up, value_type=float),
             'rotor_motor_time_constant_down': ParameterValue(rotor_motor_time_constant_down, value_type=float),
             'rotor_motor_rate_limit_rad_s2': ParameterValue(rotor_motor_rate_limit_rad_s2, value_type=float),
+            'rotor_visual_slowdown_sim': 10.0,
             'rotor_min_speed_ratio': 0.20,
             'rotor_tau_z_filter_time_constant': 0.25,
             'rotor_lower_command_scale': 1.0,
@@ -252,6 +247,7 @@ def generate_launch_description():
             'rviz_vehicle_arrow_z_offset': 0.015,
             'auto_scene_yaw_step_deg': ParameterValue(auto_scene_yaw_step_deg, value_type=float),
             'auto_scene_yaw_ramp_duration': ParameterValue(auto_scene_yaw_ramp_duration, value_type=float),
+            'auto_scene_coupled_yaw_thrust_boost_ratio': ParameterValue(auto_scene_coupled_yaw_thrust_boost_ratio, value_type=float),
         },],
         output='screen'
     )
@@ -269,9 +265,9 @@ def generate_launch_description():
         DeclareLaunchArgument('uav_model_path', default_value=urdf_path),
         DeclareLaunchArgument('world_sdf_path', default_value=default_world_path),
         DeclareLaunchArgument('enable_gui', default_value='true'),
-        DeclareLaunchArgument('enable_rviz', default_value='true'),
+        DeclareLaunchArgument('enable_rviz', default_value='false'),
         DeclareLaunchArgument('enable_plotjuggler', default_value='false'),
-        DeclareLaunchArgument('enable_wind_bridge', default_value='false'),
+        DeclareLaunchArgument('enable_wind_bridge', default_value='true'),
         DeclareLaunchArgument('ndo_enabled', default_value='true'),
         DeclareLaunchArgument('ndo_compensation_limit_deg', default_value='20.0'),
         DeclareLaunchArgument('ndo_compensation_limit_schedule_enabled', default_value='false'),
@@ -280,11 +276,11 @@ def generate_launch_description():
         DeclareLaunchArgument('ndo_compensation_limit_low_deg', default_value='12.0'),
         DeclareLaunchArgument('ndo_compensation_limit_high_deg', default_value='18.0'),
         DeclareLaunchArgument('ndo_compensated_attitude_limit_deg', default_value='25.0'),
-        DeclareLaunchArgument('ndo_feedback_relief_enabled', default_value='false'),
-        DeclareLaunchArgument('ndo_feedback_relief_gain', default_value='1.0'),
+        DeclareLaunchArgument('ndo_feedback_relief_enabled', default_value='true'),
+        DeclareLaunchArgument('ndo_feedback_relief_gain', default_value='0.7'),
         DeclareLaunchArgument('ndo_feedback_relief_deadband_deg', default_value='1.5'),
-        DeclareLaunchArgument('ndo_feedback_relief_max_fraction', default_value='0.65'),
-        DeclareLaunchArgument('ndo_transient_attitude_boost_enabled', default_value='false'),
+        DeclareLaunchArgument('ndo_feedback_relief_max_fraction', default_value='0.45'),
+        DeclareLaunchArgument('ndo_transient_attitude_boost_enabled', default_value='true'),
         DeclareLaunchArgument('ndo_transient_attitude_limit_deg', default_value='28.0'),
         DeclareLaunchArgument('ndo_transient_attitude_boost_duration', default_value='4.5'),
         DeclareLaunchArgument('ndo_transient_attitude_boost_fade', default_value='1.0'),
@@ -300,7 +296,7 @@ def generate_launch_description():
         DeclareLaunchArgument('slider_command_rate_limit', default_value='0.45'),
         DeclareLaunchArgument('outer_xy_kp', default_value='2.20'),
         DeclareLaunchArgument('outer_xy_ki', default_value='0.18'),
-        DeclareLaunchArgument('outer_xy_kd', default_value='0.85'),
+        DeclareLaunchArgument('outer_xy_kd', default_value='0.95'),
         DeclareLaunchArgument('outer_terminal_hover_velocity_damping', default_value='1.6'),
         DeclareLaunchArgument('body_mass_kg', default_value='1.25'),
         DeclareLaunchArgument('moving_mass_kg', default_value='0.05'),
@@ -312,14 +308,15 @@ def generate_launch_description():
         DeclareLaunchArgument('rotor_motor_rate_limit_rad_s2', default_value='0.0'),
         DeclareLaunchArgument('auto_scene_mode', default_value='hover_to_point_hold'),
         DeclareLaunchArgument('auto_scene_hover_hold_time', default_value='3.0'),
-        DeclareLaunchArgument('auto_scene_move_duration', default_value='5.0'),
-        DeclareLaunchArgument('auto_scene_horizontal_accel_limit', default_value='0.9'),
+        DeclareLaunchArgument('auto_scene_move_duration', default_value='6.0'),
+        DeclareLaunchArgument('auto_scene_horizontal_accel_limit', default_value='0.75'),
         DeclareLaunchArgument('auto_scene_target_x', default_value='0.0'),
         DeclareLaunchArgument('auto_scene_target_y', default_value='3.0'),
         DeclareLaunchArgument('auto_scene_target_z', default_value='2.0'),
         DeclareLaunchArgument('auto_scene_yaw_ref_mode', default_value='fixed'),
         DeclareLaunchArgument('auto_scene_yaw_step_deg', default_value='90.0'),
-        DeclareLaunchArgument('auto_scene_yaw_ramp_duration', default_value='5.0'),
+        DeclareLaunchArgument('auto_scene_yaw_ramp_duration', default_value='6.0'),
+        DeclareLaunchArgument('auto_scene_coupled_yaw_thrust_boost_ratio', default_value='0.030'),
         set_env,
         start_gazebo_server,
         TimerAction(period=1.0, actions=[start_gazebo_gui]),

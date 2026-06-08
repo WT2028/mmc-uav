@@ -1,6 +1,8 @@
 # ENU 坐标系：X 向东，Y 向北，Z 向上
 import csv
+import fcntl
 import math
+import os
 import signal
 import time
 from contextlib import nullcontext
@@ -71,6 +73,12 @@ except ImportError:  # pragma: no cover - 测试桩环境兜底
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from ros_gz_interfaces.msg import EntityWrench, Entity
+try:
+    from rosgraph_msgs.msg import Clock as ClockMsg
+except ImportError:  # pragma: no cover - 测试桩环境兜底
+    class ClockMsg:  # type: ignore[override]
+        def __init__(self):
+            self.clock = SimpleNamespace(sec=0, nanosec=0)
 from sensor_msgs.msg import Imu, JointState
 from std_msgs.msg import Float64
 
@@ -82,6 +90,33 @@ except ImportError:  # pragma: no cover — 直接源码执行时的后备方案
     from wind_config import WindConfigSummary, parse_world_wind_config
 
 RAD_S_TO_RPM = 60.0 / (2.0 * math.pi)
+
+
+def acquire_controller_instance_lock(lock_path: Optional[str] = None):
+    """Keep one actuator-publishing controller per ROS domain."""
+    if lock_path is None:
+        ros_domain_id = os.environ.get("ROS_DOMAIN_ID", "0").strip() or "0"
+        safe_domain_id = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in ros_domain_id)
+        lock_path = f"/tmp/mmc_uav_controller_domain_{safe_domain_id}.lock"
+
+    lock_file = open(lock_path, "a+", encoding="utf-8")
+    try:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError as exc:
+        lock_file.seek(0)
+        owner_pid = lock_file.read().strip() or "unknown"
+        lock_file.close()
+        raise RuntimeError(
+            "Another MMC UAV controller is already active in this ROS domain "
+            f"(pid={owner_pid}). Stop the previous launch before starting a new one."
+        ) from exc
+
+    lock_file.seek(0)
+    lock_file.truncate()
+    lock_file.write(str(os.getpid()))
+    lock_file.flush()
+    return lock_file
+
 
 # 限幅（直接截断）辅助函数
 def clamp(value, minlim, maxlim):
@@ -3751,7 +3786,13 @@ class MMCUAVROS2Controller(Node):
     """
 
     def __init__(self):
-        super().__init__("mmc_uav_controller")
+        instance_lock = acquire_controller_instance_lock()
+        try:
+            super().__init__("mmc_uav_controller")
+        except Exception:
+            instance_lock.close()
+            raise
+        self._controller_instance_lock = instance_lock
 
         # ===== 保留的原始算法模块 =====
         self.P = Params()
@@ -3908,6 +3949,26 @@ class MMCUAVROS2Controller(Node):
         self.rotor_lower_force_constant = float(self.P.b_thrust * self.mixer.lower_rotor_eff)
         self.rotor_moment_constant = float(self.P.d_yaw / max(self.P.b_thrust, 1e-9))
 
+        # ===== 控制时间基准 =====
+        # launch 仍启用 use_sim_time；飞控内部显式使用 /clock，避免定时器回调中
+        # wall/steady time 与 Gazebo time 混用后造成任务时间正负交替。
+        self.control_time_source = str(
+            self.declare_parameter("control_time_source", "sim_clock").value
+        ).strip().lower()
+        self.use_explicit_sim_clock_for_control = self.control_time_source in (
+            "sim",
+            "sim_clock",
+            "sim_time",
+            "gazebo",
+            "gazebo_clock",
+        )
+        self._steady_time_zero = time.perf_counter()
+        self.sim_clock_ready = False
+        self.sim_clock_sec = 0.0
+        self._clock_wait_logged = False
+        self._last_backward_clock_warn_wall = -math.inf
+        self._last_forward_clock_rebase_warn_wall = -math.inf
+
         # ===== 回路频率：外环 25 Hz，内环 100 Hz =====
         self.outer_dt = 1.0 / 25.0
         self.inner_dt = 1.0 / 100.0
@@ -3960,6 +4021,7 @@ class MMCUAVROS2Controller(Node):
         self.rotor_motor_time_constant_up = 0.0
         self.rotor_motor_time_constant_down = 0.0
         self.rotor_motor_rate_limit_rad_s2 = 0.0
+        self.rotor_visual_slowdown_sim = 10.0
         self.filtered_tau_z_cmd = 0.0
         self.rotor_total_thrust_est = 0.0
         self.rotor_tau_z_est = 0.0
@@ -4007,7 +4069,7 @@ class MMCUAVROS2Controller(Node):
         self.last_joint_update_ns: Optional[int] = None
 
         # ===== 时间基准 =====
-        self.start_time = self.get_clock().now()
+        self.start_time = 0.0 if self.use_explicit_sim_clock_for_control else self._steady_elapsed_sec()
         self.last_inner_tick = self.start_time
         self.wrench_dt_for_scale = self.inner_dt
         self.last_inner_dt = self.inner_dt
@@ -4329,6 +4391,10 @@ class MMCUAVROS2Controller(Node):
             1e-6,
             float(self.declare_parameter("auto_scene_yaw_ramp_duration", 4.0).value),
         )
+        self.auto_scene_coupled_yaw_thrust_boost_ratio = max(
+            0.0,
+            float(self.declare_parameter("auto_scene_coupled_yaw_thrust_boost_ratio", 0.0).value),
+        )
         self.auto_scene_open_loop_tau_z_step = float(
             self.declare_parameter("auto_scene_open_loop_tau_z_step", -0.03).value
         )
@@ -4356,6 +4422,10 @@ class MMCUAVROS2Controller(Node):
         self.rotor_motor_rate_limit_rad_s2 = max(
             0.0,
             float(self.declare_parameter("rotor_motor_rate_limit_rad_s2", 0.0).value),
+        )
+        self.rotor_visual_slowdown_sim = max(
+            1.0,
+            float(self.declare_parameter("rotor_visual_slowdown_sim", 10.0).value),
         )
         self.mixer.set_min_speed_ratio(self.rotor_min_speed_ratio)
         self.auto_scene_open_loop_rotor_hover_start_time: Optional[float] = None
@@ -4479,6 +4549,7 @@ class MMCUAVROS2Controller(Node):
             )
 
         # ===== 必需订阅 =====
+        self.create_subscription(ClockMsg, "/clock", self.clock_cb, 10)
         self.create_subscription(Imu, self.imu_topic, self.imu_cb, qos_profile_sensor_data)
         self.create_subscription(Odometry, self.odom_topic, self.odom_cb, qos_profile_sensor_data)
         self.create_subscription(WindStatus, "/mmc/wind/status", self.wind_status_cb, 10)
@@ -4545,7 +4616,8 @@ class MMCUAVROS2Controller(Node):
             f"tau_up={self.rotor_motor_time_constant_up:.3f}s, "
             f"tau_down={self.rotor_motor_time_constant_down:.3f}s, "
             f"rate_limit={self.rotor_motor_rate_limit_rad_s2:.1f}rad/s^2, "
-            f"tau_z_filter={self.rotor_tau_z_filter_time_constant:.3f}s"
+            f"tau_z_filter={self.rotor_tau_z_filter_time_constant:.3f}s, "
+            f"visual_slowdown={self.rotor_visual_slowdown_sim:.1f}"
         )
         if (
             abs(self.rotor_lower_command_scale_after_hover - self.rotor_lower_command_scale) > 1e-9
@@ -4694,6 +4766,41 @@ class MMCUAVROS2Controller(Node):
                 now_sec=self._now_sec(),
             )
 
+    def clock_cb(self, msg: ClockMsg):
+        clock = getattr(msg, "clock", None)
+        if clock is None:
+            return
+        sec = float(getattr(clock, "sec", 0.0))
+        nanosec = float(getattr(clock, "nanosec", 0.0))
+        now_sec = sec + nanosec * 1e-9
+        if not math.isfinite(now_sec):
+            return
+        if self.sim_clock_ready:
+            clock_delta = now_sec - self.sim_clock_sec
+            if clock_delta < -1e-6:
+                warn_now = time.perf_counter()
+                if (warn_now - self._last_backward_clock_warn_wall) >= 5.0:
+                    self.get_logger().warning(
+                        "Ignoring backwards /clock samples so controller time remains monotonic."
+                    )
+                    self._last_backward_clock_warn_wall = warn_now
+                return
+            if clock_delta > 2.0:
+                # 两个 /clock 发布源首次交接时可能出现大幅向前跳变。
+                # 同步平移任务零点和内环 tick，使任务已用时间与控制 dt 保持连续。
+                if self.mission_initialized:
+                    self.start_time = float(self.start_time) + clock_delta
+                self.last_inner_tick = float(self.last_inner_tick) + clock_delta
+                warn_now = time.perf_counter()
+                if (warn_now - self._last_forward_clock_rebase_warn_wall) >= 5.0:
+                    self.get_logger().warning(
+                        "Large forward /clock jump detected; rebasing controller timing to keep "
+                        "the auto-mission elapsed time continuous."
+                    )
+                    self._last_forward_clock_rebase_warn_wall = warn_now
+        self.sim_clock_sec = now_sec
+        self.sim_clock_ready = True
+
     def joint_state_cb(self, msg: JointState):
         # 可选：在有真实关节状态反馈时，用其更新 chi/ups
         if not msg.name:
@@ -4766,21 +4873,36 @@ class MMCUAVROS2Controller(Node):
                 params.slider_vel_max,
             )
 
+            rotor_feedback_scale = float(getattr(self, "rotor_visual_slowdown_sim", 1.0))
             if upper_vel is not None:
-                self.upper_rotor_actual = float(upper_vel)
+                self.upper_rotor_actual = float(upper_vel) * rotor_feedback_scale
             if lower_vel is not None:
-                self.lower_rotor_actual = float(lower_vel)
+                self.lower_rotor_actual = float(lower_vel) * rotor_feedback_scale
 
             self.last_joint_update_ns = self.get_clock().now().nanoseconds
 
     # ----------------------------
     # 任务与辅助方法
     # ----------------------------
+    def _steady_elapsed_sec(self) -> float:
+        steady_zero = float(getattr(self, "_steady_time_zero", time.perf_counter()))
+        return max(0.0, time.perf_counter() - steady_zero)
+
+    def _control_clock_ready(self) -> bool:
+        return (not getattr(self, "use_explicit_sim_clock_for_control", False)) or bool(
+            getattr(self, "sim_clock_ready", False)
+        )
+
+    def _control_now_sec(self) -> float:
+        if getattr(self, "use_explicit_sim_clock_for_control", False):
+            return float(getattr(self, "sim_clock_sec", 0.0))
+        return MMCUAVROS2Controller._steady_elapsed_sec(self)
+
     def _elapsed_sec(self) -> float:
-        return (self.get_clock().now() - self.start_time).nanoseconds * 1e-9
+        return self._control_now_sec() - float(self.start_time)
 
     def _now_sec(self) -> float:
-        return self.get_clock().now().nanoseconds * 1e-9
+        return self._control_now_sec()
 
     def _sensors_ready(self) -> bool:
         with optional_lock(self):
@@ -6682,6 +6804,46 @@ class MMCUAVROS2Controller(Node):
         self.thrust_retarget_ratio = float(applied_ratio)
         return float(thrust), float(applied_ratio)
 
+    def _resolve_auto_scene_coupled_yaw_thrust_boost_ratio(self, t: float) -> float:
+        scene_mode = str(getattr(self, "auto_scene_mode", "hover_only")).strip().lower()
+        if scene_mode != "hover_to_point_yaw_step_hold":
+            return 0.0
+
+        max_boost_ratio = max(
+            float(getattr(self, "auto_scene_coupled_yaw_thrust_boost_ratio", 0.0)),
+            0.0,
+        )
+        if max_boost_ratio <= 1e-9:
+            return 0.0
+
+        ramp_start_time = getattr(self, "auto_scene_yaw_step_trigger_time", None)
+        if ramp_start_time is None:
+            takeoff_transition_time = max(
+                float(getattr(self, "auto_scene_takeoff_transition_time", 5.0)),
+                1e-6,
+            )
+            hover_hold_time = max(float(getattr(self, "auto_scene_hover_hold_time", 4.0)), 0.0)
+            ramp_start_time = takeoff_transition_time + hover_hold_time
+
+        ramp_duration = max(
+            float(MMCUAVROS2Controller._resolved_auto_scene_move_duration(self)),
+            1e-6,
+        )
+        phase = clamp((float(t) - float(ramp_start_time)) / ramp_duration, 0.0, 1.0)
+        if phase <= 0.0 or phase >= 1.0:
+            return 0.0
+
+        # 实验 B 的掉高主要出现在“前半段平移 + 偏航同步建立”阶段。
+        # 因此这里只做前置式的小幅推力托举，避免把后半段收敛过程重新抬高，
+        # 进而在接近目标点后诱发新的回落。
+        boost_active_phase = 0.60
+        if phase >= boost_active_phase:
+            return 0.0
+
+        normalized_phase = clamp(phase / boost_active_phase, 0.0, 1.0)
+        envelope = math.sin(math.pi * normalized_phase)
+        return float(max_boost_ratio * envelope)
+
     def _resolve_auto_scene_yaw_target(
         self,
         t: float,
@@ -7320,17 +7482,22 @@ class MMCUAVROS2Controller(Node):
                 return
             if not (self.imu_ready and self.odom_ready):
                 return
+            if not MMCUAVROS2Controller._control_clock_ready(self):
+                if not self._clock_wait_logged:
+                    self.get_logger().info("Waiting for /clock before initializing the auto mission...")
+                    self._clock_wait_logged = True
+                return
             if not self.preflight_centering_started:
                 self.preflight_centering_started = True
                 self.center_hold_start_ns = None
-                self.last_inner_tick = self.get_clock().now()
+                self.last_inner_tick = MMCUAVROS2Controller._control_now_sec(self)
                 self.get_logger().info("Sensors ready. Holding sliders at center before takeoff...")
                 return
             if not self.preflight_centering_confirmed:
                 return
 
             # 当 IMU 和里程计都就绪后，启动任务时间基准
-            self.start_time = self.get_clock().now()
+            self.start_time = MMCUAVROS2Controller._control_now_sec(self)
             self.last_inner_tick = self.start_time
 
             traj_x, traj_y, traj_z = self._default_trajectory_functions()
@@ -7576,6 +7743,16 @@ class MMCUAVROS2Controller(Node):
         end = start + max(MMCUAVROS2Controller._resolved_auto_scene_move_duration(self), 1e-6)
         return float(start), float(end)
 
+    def _move_start_ready_for_runtime_wind_activation(
+        self,
+        summary: WindConfigSummary,
+        t: float,
+    ) -> bool:
+        start, _end = MMCUAVROS2Controller._auto_scene_move_window_bounds(self)
+        if float(t) < float(start):
+            return False
+        return hover_ready_for_wind_activation(self.state, summary)
+
     def _update_move_window_wind_state(self, t: float):
         summary = self.wind_config_summary
         if not summary.config_valid or not summary.enable_wind:
@@ -7638,8 +7815,23 @@ class MMCUAVROS2Controller(Node):
         ):
             return
 
+        activation_source = "hover_hold"
         if summary.activation_mode == "hover_hold":
-            if not hover_ready_for_wind_activation(self.state, summary):
+            ready_for_activation = hover_ready_for_wind_activation(self.state, summary)
+        elif summary.activation_mode == "move_start":
+            activation_source = "move_start"
+            ready_for_activation = MMCUAVROS2Controller._move_start_ready_for_runtime_wind_activation(
+                self,
+                summary,
+                t,
+            )
+        elif summary.activation_mode != "immediate":
+            return
+        else:
+            ready_for_activation = True
+
+        if summary.activation_mode == "hover_hold":
+            if not ready_for_activation:
                 self.wind_hover_hold_start_time = None
                 return
             if self.wind_hover_hold_start_time is None:
@@ -7647,7 +7839,7 @@ class MMCUAVROS2Controller(Node):
                 return
             if (t - self.wind_hover_hold_start_time) < summary.hover_hold_time:
                 return
-        elif summary.activation_mode != "immediate":
+        elif summary.activation_mode == "move_start" and not ready_for_activation:
             return
 
         velocity_world = (
@@ -7658,10 +7850,10 @@ class MMCUAVROS2Controller(Node):
         command = self._publish_runtime_wind_command(
             True,
             velocity_world,
-            source="hover_hold",
+            source=activation_source,
         )
         self.get_logger().info(
-            "Published hover-hold wind command and waiting for bridge ack: "
+            f"Published {activation_source.replace('_', '-')} wind command and waiting for bridge ack: "
             f"seq={command.command_seq}, v=({summary.wind_vx_world:.2f}, "
             f"{summary.wind_vy_world:.2f}, {summary.wind_vz_world:.2f}) m/s"
         )
@@ -7732,6 +7924,8 @@ class MMCUAVROS2Controller(Node):
     # 外环（25 Hz）
     # ----------------------------
     def outer_loop_cb(self):
+        if not self._control_clock_ready():
+            return
         with optional_lock(self):
             mission_initialized = self.mission_initialized
         if not mission_initialized:
@@ -7748,11 +7942,18 @@ class MMCUAVROS2Controller(Node):
     def inner_loop_cb(self):
         if not self._sensors_ready():
             return
+        if not self._control_clock_ready():
+            if not self._clock_wait_logged:
+                self.get_logger().info("Waiting for /clock before running the control loops...")
+                self._clock_wait_logged = True
+            return
 
         inner_exec_start = time.perf_counter()
-        now = self.get_clock().now()
-        dt_raw = (now - self.last_inner_tick).nanoseconds * 1e-9
-        self.last_inner_tick = now
+        now = self._control_now_sec()
+        dt_raw = float(now) - float(self.last_inner_tick)
+        if getattr(self, "use_explicit_sim_clock_for_control", True) and dt_raw <= 1e-9:
+            return
+        self.last_inner_tick = float(now)
         dt = dt_raw
         if dt <= 1e-6:
             dt = self.inner_dt
@@ -7766,7 +7967,7 @@ class MMCUAVROS2Controller(Node):
                 self.last_large_inner_dt_warn_time = elapsed_sec
             dt = self.inner_dt
         self.last_inner_dt_raw = max(dt_raw, 0.0)
-        self.last_inner_dt = self.last_inner_dt_raw if dt_raw > 1e-6 else dt
+        self.last_inner_dt = dt
         self.last_inner_exec_dt = 0.0
         self.last_inner_mpc_dt = 0.0
         self.last_inner_observer_dt = 0.0
@@ -7831,6 +8032,18 @@ class MMCUAVROS2Controller(Node):
                     outer_theta_ref=float(self.theta_ref),
                 )
             )
+            scene_boost_ratio = MMCUAVROS2Controller._resolve_auto_scene_coupled_yaw_thrust_boost_ratio(
+                self,
+                t,
+            )
+            if scene_boost_ratio > 1e-9:
+                boosted_thrust_cmd = clamp(
+                    thrust_cmd_current * (1.0 + scene_boost_ratio),
+                    self.P.thrust_min,
+                    self.P.thrust_max,
+                )
+                thrust_retarget_ratio *= boosted_thrust_cmd / max(thrust_cmd_current, 1e-9)
+                thrust_cmd_current = float(boosted_thrust_cmd)
             self.thrust_cmd = float(thrust_cmd_current)
             self.thrust_retarget_ratio = float(thrust_retarget_ratio)
 

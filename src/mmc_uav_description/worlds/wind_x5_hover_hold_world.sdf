@@ -23,41 +23,41 @@
       <force_approximation_scaling_factor>1</force_approximation_scaling_factor>
       <horizontal>
         <magnitude>
-          <time_for_rise>0.001</time_for_rise>
+          <time_for_rise>1.5</time_for_rise>
           <sin>
             <amplitude_percent>0</amplitude_percent>
             <period>1</period>
           </sin>
           <noise type="gaussian">
             <mean>0</mean>
-            <stddev>0.10</stddev>
+            <stddev>0.04</stddev>
           </noise>
         </magnitude>
         <direction>
-          <time_for_rise>0.001</time_for_rise>
+          <time_for_rise>1.5</time_for_rise>
           <sin>
             <amplitude>0</amplitude>
             <period>1</period>
           </sin>
           <noise type="gaussian">
             <mean>0</mean>
-            <stddev>0.04</stddev>
+            <stddev>0.015</stddev>
           </noise>
         </direction>
       </horizontal>
       <vertical>
         <noise type="gaussian">
           <mean>0</mean>
-          <stddev>0.05</stddev>
+          <stddev>0.02</stddev>
         </noise>
       </vertical>
       <mmc_wind_schedule>
-        <activation_mode>hover_hold</activation_mode>
+        <activation_mode>move_start</activation_mode>
         <target_linear_velocity>5 0 0</target_linear_velocity>
         <hover_target_z>2.0</hover_target_z>
         <hover_z_tol>0.20</hover_z_tol>
         <hover_speed_tol>0.25</hover_speed_tol>
-        <hover_hold_time>3.0</hover_hold_time>
+        <hover_hold_time>0.0</hover_hold_time>
       </mmc_wind_schedule>
     </plugin>
     <wind>
