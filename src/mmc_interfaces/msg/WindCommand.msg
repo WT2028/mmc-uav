@@ -1,0 +1,6 @@
+uint32 command_seq
+builtin_interfaces/Time stamp
+string world_name
+bool enable_wind
+geometry_msgs/Vector3 linear_velocity_world
+string source

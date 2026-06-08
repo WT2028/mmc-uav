@@ -1,0 +1,39 @@
+# ROS 2 / colcon outputs
+build/
+install/
+log/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime logs and generated plots
+src/mmc_control/fly_data/
+src/mmc_control/output_picture/
+fly_data/
+output_picture/
+*.bag
+*.db3
+*.mcap
+
+# Gazebo / RViz / local runtime state
+.gz/
+.ignition/
+*.log
+
+# Local editor / OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.orig

@@ -1,0 +1,75 @@
+﻿# ros_gz_bridge configuration for MMC UAV controller
+# Usage:
+#   ros2 run ros_gz_bridge parameter_bridge --ros-args -p config_file:=/ABS/PATH/ros_gz_bridge_mmc.yaml
+
+- ros_topic_name: "/imu"
+  gz_topic_name: "/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/model/mmc_uav/odometry"
+  gz_topic_name: "/model/mmc_uav/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/joint_states"
+  gz_topic_name: "/model/mmc_uav/joint_state"
+  ros_type_name: "sensor_msgs/msg/JointState"
+  gz_type_name: "gz.msgs.Model"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/mmc_uav/command/motor_speed"
+  gz_topic_name: "/mmc_uav/command/motor_speed"
+  ros_type_name: "actuator_msgs/msg/Actuators"
+  gz_type_name: "gz.msgs.Actuators"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/world/mmc_world/wrench"
+  gz_topic_name: "/world/mmc_world/wrench"
+  ros_type_name: "ros_gz_interfaces/msg/EntityWrench"
+  gz_type_name: "gz.msgs.EntityWrench"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/model/mmc_uav/joint/joint_rotor_upper/cmd_vel"
+  gz_topic_name: "/model/mmc_uav/joint/joint_rotor_upper/cmd_vel"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/model/mmc_uav/joint/joint_rotor_lower/cmd_vel"
+  gz_topic_name: "/model/mmc_uav/joint/joint_rotor_lower/cmd_vel"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/model/mmc_uav/joint/joint_slider_green/cmd_pos"
+  gz_topic_name: "/model/mmc_uav/joint/joint_slider_green/cmd_pos"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/model/mmc_uav/joint/joint_slider_purple/cmd_pos"
+  gz_topic_name: "/model/mmc_uav/joint/joint_slider_purple/cmd_pos"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/model/mmc_uav/joint/joint_slider_blue/cmd_pos"
+  gz_topic_name: "/model/mmc_uav/joint/joint_slider_blue/cmd_pos"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/model/mmc_uav/joint/joint_slider_red/cmd_pos"
+  gz_topic_name: "/model/mmc_uav/joint/joint_slider_red/cmd_pos"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
