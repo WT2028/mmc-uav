@@ -87,16 +87,27 @@ videos/                 Recorded A/B/D demonstration MP4 files
 ## Dependencies
 
 This project expects a ROS 2 + Gazebo Sim environment with `colcon` and the
-standard ROS/Gazebo bridge packages. Package names vary by ROS/Gazebo distro,
-but the runtime dependencies include:
+standard ROS/Gazebo bridge packages. Package names vary by ROS/Gazebo distro;
+the runtime dependency set is:
 
-- ROS 2 Python client library: `rclpy`
+- ROS 2 launch/client libraries: `launch`, `launch_ros`, `rclpy`
 - ROS messages: `geometry_msgs`, `nav_msgs`, `sensor_msgs`, `std_msgs`,
-  `builtin_interfaces`, `actuator_msgs`
+  `builtin_interfaces`, `actuator_msgs`, `rosgraph_msgs`,
+  `visualization_msgs`
 - Gazebo bridge/interfaces: `ros_gz_bridge`, `ros_gz_interfaces`
-- Python libraries: `numpy`, `scipy`, `pandas`, `matplotlib`
+- Python libraries: `numpy`, `scipy`, `pandas`, `matplotlib`, `casadi`,
+  `osqp`
 - Gazebo Python transport bindings used by the wind bridge:
   `python3-gz-transport13`
+- Optional visualization/teleoperation tools: `plotjuggler`, `tkinter`,
+  `pynput`
+
+If `casadi` or `osqp` is not provided by your ROS/Gazebo distribution packages,
+install them in your active Python environment, for example:
+
+```bash
+python3 -m pip install -r requirements.txt
+```
 
 ## Build
 
@@ -114,9 +125,9 @@ source install/setup.bash
 ros2 launch mmc_control mmc_launch.py
 ```
 
-Current default baseline: Experiment D with the 3 m/s move-start-activated
-wind world, a 1.5 s wind ramp, wind bridge enabled, NDO enabled, and RViz
-disabled.
+Current default baseline: Experiment D with the 3 m/s move-start-activated wind
+world, a 1.5 s wind ramp, wind bridge enabled, NDO enabled, Gazebo GUI enabled,
+and RViz disabled.
 
 The launch file resolves resources from installed package shares, so it should
 not depend on the original development workspace path. Generated flight logs

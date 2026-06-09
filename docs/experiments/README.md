@@ -6,7 +6,8 @@ A, B, and D. Experiment C remains a documented parameter-scan capability and
 does not require a dedicated demo video.
 
 Current default launch baseline: Experiment D with the 3 m/s move-start-activated
-wind world, a 1.5 s wind ramp, wind bridge enabled, NDO enabled, and RViz disabled.
+wind world, a 1.5 s wind ramp, wind bridge enabled, NDO enabled, Gazebo GUI
+enabled, and RViz disabled.
 
 ## Recorded demonstrations
 
@@ -20,7 +21,7 @@ wind world, a 1.5 s wind ramp, wind bridge enabled, NDO enabled, and RViz disabl
 
 Purpose: validate nominal spatial tracking and final holding accuracy.
 
-Suggested launch from the development workspace:
+Suggested launch after building and sourcing this workspace:
 
 ```bash
 ros2 launch mmc_control mmc_launch.py \
@@ -86,8 +87,9 @@ done
 Purpose: compare disturbance-compensation benefit and resource cost under
 constant wind with turbulence.
 
-Example for the 3 m/s wind world (this is also the current default launch
-baseline; wind activates at move start and ramps from 0 to 3 m/s over 1.5 s):
+Example for the 3 m/s wind world. The first command uses the current defaults;
+the following commands spell out the NDO-on and NDO-off comparison variants.
+Wind activates at move start and ramps from 0 to 3 m/s over 1.5 s:
 
 ```bash
 WORLD=$(ros2 pkg prefix mmc_uav_description)/share/mmc_uav_description/worlds/wind_x3_hover_hold_world.sdf

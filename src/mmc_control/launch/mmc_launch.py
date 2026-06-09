@@ -1,4 +1,5 @@
 import os
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, SetEnvironmentVariable, TimerAction
 from launch.conditions import IfCondition
@@ -8,15 +9,25 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
-    # 自动获取当前用户主目录，构建绝对路径，避免路径错误
-    home_dir = os.path.expanduser('~')
-    ws_src_dir = os.path.join(home_dir, 'mmc_ws', 'src')
+    # Resolve resources from installed package shares so the public repository
+    # does not depend on the original development workspace path.
+    control_share_dir = get_package_share_directory('mmc_control')
+    description_share_dir = get_package_share_directory('mmc_uav_description')
 
-    urdf_path = os.path.join(ws_src_dir, 'mmc_uav_description', 'urdf', 'mmc_uav.urdf')
-    default_world_path = os.path.join(ws_src_dir, 'mmc_uav_description', 'worlds', 'wind_x3_hover_hold_world.sdf')
-    bridge_yaml_path = os.path.join(ws_src_dir, 'mmc_control', 'config', 'ros_gz_bridge_mmc.yaml')
-    rviz_config_path = os.path.join(ws_src_dir, 'mmc_control', 'config', 'mmc_rviz.rviz')
-    pj_layout_path = os.path.join(ws_src_dir, 'mmc_control', 'config', 'mmc_pj_layout.xml')
+    urdf_path = os.path.join(description_share_dir, 'urdf', 'mmc_uav.urdf')
+    default_world_path = os.path.join(description_share_dir, 'worlds', 'wind_x3_hover_hold_world.sdf')
+    bridge_yaml_path = os.path.join(control_share_dir, 'config', 'ros_gz_bridge_mmc.yaml')
+    rviz_config_path = os.path.join(control_share_dir, 'config', 'mmc_rviz.rviz')
+    pj_layout_path = os.path.join(control_share_dir, 'config', 'mmc_pj_layout.xml')
+    description_resource_parent = os.path.dirname(description_share_dir)
+    existing_gz_resource_path = os.environ.get('GZ_SIM_RESOURCE_PATH', '')
+    gz_resource_path = os.pathsep.join(
+        path for path in (
+            description_resource_parent,
+            description_share_dir,
+            existing_gz_resource_path,
+        ) if path
+    )
     uav_model_path = LaunchConfiguration('uav_model_path')
     world_path = LaunchConfiguration('world_sdf_path')
     enable_gui = LaunchConfiguration('enable_gui')
@@ -78,7 +89,7 @@ def generate_launch_description():
     manual_xy_enabled = False
 
     # 1. 设置模型资源路径环境变量
-    set_env = SetEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=ws_src_dir)
+    set_env = SetEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=gz_resource_path)
 
     # 2. 显式分离 Gazebo server / GUI：
     #    - `gz sim <world>` 会额外 fork `gz sim server`，launch 只跟踪前台包装进程，

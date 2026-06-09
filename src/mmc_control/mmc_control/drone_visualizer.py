@@ -4,7 +4,6 @@
 无人机数据可视化脚本
 用于处理CSV格式的无人机数据并生成可视化图表（折线图）
 
-作者: AI Assistant
 版本: 2.1.0
 依赖: pandas, matplotlib
 """

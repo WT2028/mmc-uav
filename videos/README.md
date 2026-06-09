@@ -7,5 +7,5 @@ repository README.
 - `experiment_b_ab_yaw_step.mp4` — A→B transfer with yaw-step hold
 - `experiment_d_wind_ndo_on.mp4` — 3 m/s wind disturbance with NDO enabled
 
-The README uses lightweight GIF previews under `docs/media/previews/` and links
+The README uses full-frame GIF previews under `docs/media/previews/` and links
 them to these MP4 files for full viewing/downloading on GitHub.
