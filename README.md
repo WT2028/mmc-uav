@@ -1,14 +1,9 @@
 # MMC UAV Simulation
 
-Public ROS 2 / Gazebo simulation source code for a moving-mass-controlled
-coaxial UAV. This repository keeps the open-source simulation subset used for
-the paper's validation scenarios: controller code, custom wind interfaces, UAV
-description resources, a CAD/model view, and recorded demonstration videos for
-Experiments A, B, and D.
-
-> Status: public simulation subset. The full development workspace, logs,
-> manuscript assets, and historical experiment artifacts are intentionally not
-> included here.
+ROS 2 / Gazebo simulation source code for a moving-mass-controlled coaxial UAV.
+The repository provides the flight controller, custom wind interfaces, UAV
+description resources, simulation worlds, a CAD/model view, and recorded
+demonstrations for the paper validation scenarios.
 
 ## MMC UAV model
 
@@ -76,14 +71,6 @@ docs/
 videos/                 Recorded A/B/D demonstration MP4 files
 ```
 
-## What is intentionally excluded
-
-- Historical `fly_data` CSV logs and generated plots.
-- Paper PDFs, LaTeX files, review images, and manuscript figures.
-- `build/`, `install/`, `log/`, caches, and other development artifacts.
-- Vendored copies of standard ROS/Gazebo dependencies.
-- Large raw capture projects beyond the curated A/B/D demo videos.
-
 ## Dependencies
 
 This project expects a ROS 2 + Gazebo Sim environment with `colcon` and the
@@ -129,9 +116,9 @@ Current default baseline: Experiment D with the 3 m/s move-start-activated wind
 world, a 1.5 s wind ramp, wind bridge enabled, NDO enabled, Gazebo GUI enabled,
 and RViz disabled.
 
-The launch file resolves resources from installed package shares, so it should
-not depend on the original development workspace path. Generated flight logs
-are written under `fly_data/` relative to `MMC_CONTROL_ROOT` when that
+The launch file resolves its controller configuration, UAV description, and
+simulation world resources from installed ROS package shares. Generated flight
+logs are written under `fly_data/` relative to `MMC_CONTROL_ROOT` when that
 environment variable is set, otherwise relative to the source package root for
 source-tree runs or the current working directory for installed runs.
 

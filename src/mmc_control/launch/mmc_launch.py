@@ -9,8 +9,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
-    # Resolve resources from installed package shares so the public repository
-    # does not depend on the original development workspace path.
+    # Resolve controller and model resources from installed package shares.
     control_share_dir = get_package_share_directory('mmc_control')
     description_share_dir = get_package_share_directory('mmc_uav_description')
 

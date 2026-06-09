@@ -1,9 +1,8 @@
 # Validation experiments
 
 This directory documents the simulation experiment families used for the paper
-validation section. Recorded demonstration videos are included for Experiments
-A, B, and D. Experiment C remains a documented parameter-scan capability and
-does not require a dedicated demo video.
+validation section. Recorded demonstrations cover Experiments A, B, and D, and
+Experiment C provides parameter-scan launch examples.
 
 Current default launch baseline: Experiment D with the 3 m/s move-start-activated
 wind world, a 1.5 s wind ramp, wind bridge enabled, NDO enabled, Gazebo GUI
