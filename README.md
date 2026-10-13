@@ -7,7 +7,8 @@ controlled co-axial bi-rotor UAV**.
 The repository includes the six-degree-of-freedom dynamics, force-driven moving
 mass actuators, constrained MPC, nonlinear disturbance observer, PID/LQR
 baselines, design-criterion calculations, and the numeric records supporting the
-paper's simulations.
+paper's simulations. These materials connect the design criteria to actuator
+tests, model–Gazebo comparisons, and closed-loop flight simulations.
 
 ## Build and run
 
@@ -87,7 +88,7 @@ The videos replay the recorded simulations used in the paper, using the model's
 CAD meshes and Gazebo Harmonic's rendering engine. A tracking camera shows the
 moving masses and attitude; the XY inset shows the full motion relative to the
 target. Closed-loop videos include takeoff, maneuver and holding through 70 s.
-The wind examples use recorded run 1; all three runs remain in the numerical
+Wind videos show the first of the three recorded runs used in each controller
 comparison.
 
 | Paper experiment | Full videos |

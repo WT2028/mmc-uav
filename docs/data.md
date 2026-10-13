@@ -1,9 +1,10 @@
 # Data and numerical methods
 
-`data/closed_loop/index.json` links each of the 25 recorded runs to an experiment
-profile, repeat number, numeric files, checksums and unrounded reference metrics.
-The CSV values retain their recorded precision. Display rounding is applied only
-to reports; it does not change parameters or calculations.
+The supplied Gazebo records support the paper's actuator tests, dynamics
+comparisons, and closed-loop evaluations. `data/closed_loop/index.json` links
+each of the 25 flight records to its experiment profile, repeat number, numeric
+files, checksums and reference metrics. Calculations use the stored full-precision
+values; rounding is applied to displayed results.
 
 ## Closed-loop records
 
@@ -11,14 +12,13 @@ to reports; it does not change parameters or calculations.
   reference, actuator, rotor, observer, solver and timing signals. `Time` is
   controller time in seconds; position is in metres, angles in degrees, angular
   rates in degrees/s, rail speed in m/s and rotor speed in rad/s.
-- `servo.csv.gz`: independent four-rail physical telemetry for the parameter and
+- `servo.csv.gz`: independent four-rail Gazebo telemetry for the parameter and
   pressure comparisons. Its native simulation clock is aligned to controller
   time using the recorded clock offset. Position, velocity and force are actual
   Gazebo states/forces, in m, m/s and N.
 - Metadata contains the SHA-256 of each distributed container and the original
   flight container. The distributed CSV is a column projection retaining every
-  sample and its original numeric text. Machine-specific paths and repeated
-  status strings are omitted.
+  sample and its original numeric text for the analysis signals.
 
 Position RMSE integrates squared three-dimensional error against the declared
 continuous reference using trapezoidal time weighting and interpolated window
@@ -42,22 +42,20 @@ group means/ranges and every check to `results/closed_loop_metrics.json`.
 
 ## Actuator and multibody records
 
-`data/actuator/` contains measured joint, servo and body histories for single,
+`data/actuator/` contains Gazebo joint, servo and body histories for single,
 paired, dual-axis and constrained positioning tests, with command events and the
-input URDF. `data/multibody/` contains thirteen isolated physical tests spanning
+input URDF. `data/multibody/` contains thirteen isolated Gazebo tests spanning
 representative cases and both sides of the coupling boundaries. Each includes
 the initial-state marker, raw joint/body motion, wrench, servo states and URDF.
 
 `analysis/mmc_analysis/` contains the six-DOF equations, CAD assembly calculation,
 finite-horizon omission models, force-servo probe code and replay integration.
-The replay compares a model propagated from its initial condition with the later
-Gazebo body measurements; the measured body state is not repeatedly reset into
-the model. The records therefore support a numerical model-consistency check.
-
-The repository provides numerical simulation evidence. Physical mechanism
-photographs in the paper describe the implementation; the datasets here are
-Gazebo measurements. Recorded full holding histories and experiment repetition
-counts remain available when interpreting the reported windows.
+Starting from the measured initial state, the model propagates body motion
+continuously using the recorded joint histories and applied inputs. Comparing
+these predictions with Gazebo body measurements checks the analytical dynamics
+against multibody simulation under matched inputs. The
+[experiment guide](experiments/README.md) specifies the evaluation windows and
+repetition counts.
 
 Generated results, builds and new simulation logs are ignored by Git. The
 supplied datasets are versioned; use a new output directory for each run.

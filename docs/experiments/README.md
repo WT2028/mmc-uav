@@ -15,10 +15,9 @@ Run commands from the repository root after building and sourcing the workspace.
 | V.D | `pressure_cmpc`, `pressure_umpc` | 1.5 m X transfer in 2.95 s, seventh-order reference, zero wind, NDO off | 1 per controller |
 
 The nominal mass/bandwidth point is shared across the V.C families, giving seven
-independent parameter-scan runs. The coordinated-motion experiment uses its own
-controller implementation, `coordinated_control.py`; the comparison and scan
-profiles use the explicitly configured experiment factories. This keeps every
-experiment tied to the controller used for its supplied records.
+independent parameter-scan runs. Each profile selects the implementation used
+for its supplied records: `coordinated_control.py` for coordinated motion, and
+the controller factories for the comparison and scan experiments.
 
 ## Running a profile
 
@@ -28,13 +27,20 @@ python3 scripts/run_experiment.py wind_cmpc --output results/wind_cmpc_02
 python3 scripts/run_experiment.py wind_cmpc --output results/wind_cmpc_03
 ```
 
-Each invocation is an independent reset. The controller runs for 70 s of its own
-time. The output contains `configuration.json`, effective ROS parameters,
-controller design, loaded-source hash, flight CSV, independent compressed sensor
-histories and completion status. The MPC
-profiles also save integral and solver-coordinate diagnostics. A completed
-capture indicates that recording finished; tracking performance is calculated
-from the measurements.
+By default, each invocation starts from an independent reset and records 70 s
+of controller time. The output includes the experiment configuration, ROS
+parameters, controller design, source hash, flight CSV and independent sensor
+histories. `completion.json` records completion status; the analysis scripts calculate
+tracking performance from the measurements. MPC profiles also save integral
+and solver diagnostics.
+
+Within a profile, `ros_parameters` initializes the ROS node, and `configuration`
+then applies the experiment's controller settings. For example, both pressure
+profiles set the horizontal position gain to 1.1 through `shared_outer`,
+overriding the node's initial value of 2.2. `effective_ros_parameters.json`
+records the ROS parameter layer; `controller_design.json` records the assembled
+controller, with pressure-case outer-loop settings also captured in
+`shared_outer_provenance.json`.
 
 The comparison factories share the measured-state input, rotor allocation and
 physical protection. Within the pressure pair, model, costs, reference,
@@ -46,17 +52,18 @@ and retain the nominal effective cost and reference-coordinator settings.
 ## Windows and limits
 
 - Wind, parameter and efficiency comparisons: controller t∈[8,23] s.
-- Pressure comparison: t∈[8,18] s, with the complete later holding record included.
+- Pressure comparison: t∈[8,18] s; the recorded trajectory continues through 70 s.
 - Parameter-scan hold window: t∈[23,70] s.
 - Mechanical travel: ±0.15 m; working command: ±0.135 m; rail speed: ±0.25 m/s;
   applied force: ±2 N.
 - Near-boundary occupancy uses 98% of the specified working-position or speed
   bound. The constrained prediction uses the declared nominal force margin.
 
-The pressure comparison is a single-run demanding case. Its UMPC record includes
-the subsequent holding failure; both complete traces are retained. The wind
-comparison reports the mean and range over three independent runs. Different
-experiments have different declared tasks and should not be pooled as repeats.
+In the supplied pressure comparison, CMPC reaches and holds the target through
+the end of the 70 s record; UMPC departs from it during the later holding phase.
+Wind results report the
+mean and range over three independent runs per controller. Each experiment is
+evaluated under the task and repetition count listed above.
 
 ## Isolated actuator and model tests (V.A)
 
@@ -69,7 +76,7 @@ python3 -m analysis.mmc_analysis.actuator_probe \
   --out-dir results/actuator_check --analyze-only
 ```
 
-Collect a new zero-gravity physical actuator test with the installed force servo:
+Run a zero-gravity Gazebo actuator test with the installed force servo:
 
 ```bash
 python3 -m analysis.mmc_analysis.actuator_probe \
@@ -82,7 +89,7 @@ Recompute the thirteen recorded CAD multibody comparisons:
 python3 -m analysis.mechanisms --multibody
 ```
 
-Prepare and run an independent short multibody test:
+Prepare and run an independent short Gazebo multibody test:
 
 ```bash
 python3 -m analysis.mmc_analysis.isolation_probe \
@@ -123,10 +130,11 @@ python3 -m analysis.mmc_analysis.coordination_replay \
   --case-dir data/coordination --output-dir results/coordination_replay
 ```
 
-The fifteen windows retain both cases exceeding the position budget; the
-reported eligible-window count is thirteen. The output records every window.
+Full-model predictions meet both error budgets in thirteen of the fifteen
+windows; the other two exceed the position budget. The output provides the
+results for all fifteen windows.
 
-The physical bandwidth checks cover 10 and 30 rad/s and both sides of the
+The Gazebo bandwidth checks cover 10 and 30 rad/s and both sides of the
 analytical response-time and speed thresholds:
 
 ```bash
@@ -135,7 +143,7 @@ python3 -m analysis.mmc_analysis.geometry_scaling
 ```
 
 The first command compares the supplied measurements with the positioning
-models. Add `--run` and a new `--output` directory to collect new physical probes.
+models. Add `--run` and a new `--output` directory to collect new Gazebo records.
 The second exports the fixed-body-mass and body-size scaling tables used by the
 mechanism analysis.
 
@@ -146,7 +154,6 @@ python3 -m analysis.closed_loop --run-dir results/wind_cmpc_01 \
   --output results/wind_cmpc_01/metrics.json
 ```
 
-The runner records the four physical servo channels as well as joint states,
-odometry, IMU and wind. These are passive observations and do not enter the
-control law. A shortened installation check must cover the complete evaluation
-window before metrics can be calculated.
+The recorder passively captures the four Gazebo servo channels, joint states,
+odometry, IMU and wind for analysis. Metric calculation requires a recording
+that covers the selected evaluation window.
