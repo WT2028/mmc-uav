@@ -14,7 +14,9 @@ import rclpy
 from geometry_msgs.msg import Vector3
 from gz.msgs10 import wind_pb2
 from mmc_interfaces.msg import WindCommand, WindStatus
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
+from mmc_control.wind_config import parse_world_wind_config
 
 GZ_CONNECTION_TIMEOUT_SEC = 1.0
 GZ_CONNECTION_POLL_SEC = 0.05
@@ -22,6 +24,10 @@ GZ_CONNECTION_POLL_SEC = 0.05
 
 def gz_wind_topic_for_world(world_name: str) -> str:
     return f"/world/{str(world_name).strip()}/wind/"
+
+
+def gz_wind_velocity_topic_for_world(world_name: str) -> str:
+    return f"/world/{str(world_name).strip()}/mmc_wind_velocity"
 
 
 def _copy_vector3(source, target) -> None:
@@ -76,6 +82,20 @@ class WindBridgeNode(Node):
         super().__init__("wind_bridge_node")
         self.gz_node = gz_node or gz.transport13.Node()
         self._publisher_cache = {}
+        # Gazebo 保留风速渐变/噪声生成；真实风速只供仿真气动力施加使用。
+        world_path = self.declare_parameter("world_sdf_path", "").value
+        summary = parse_world_wind_config(world_path)
+        self.world_name = summary.world_name or "mmc_world"
+        # Establish discovery before the one-shot move-start command. Both
+        # WindEffects and the diagnostic publisher subscribe to this topic;
+        # first advertising inside the callback can reach only the latter.
+        # No wind command is sent here and the declared ramp stays unchanged.
+        self._publisher_for_world(self.world_name)
+        self.velocity_pub = self.create_publisher(Vector3, "/mmc/wind/velocity", 10)
+        if not self.gz_node.subscribe(
+            wind_pb2.Wind, gz_wind_velocity_topic_for_world(self.world_name), self._on_wind_velocity,
+        ):
+            raise RuntimeError(f"Could not subscribe to Gazebo wind information for {self.world_name}")
         self.command_sub = self.create_subscription(
             WindCommand,
             "/mmc/wind/command",
@@ -83,6 +103,12 @@ class WindBridgeNode(Node):
             10,
         )
         self.status_pub = self.create_publisher(WindStatus, "/mmc/wind/status", 10)
+
+    def _on_wind_velocity(self, message: wind_pb2.Wind) -> None:
+        velocity = Vector3()
+        if message.enable_wind:
+            _copy_vector3(message.linear_velocity, velocity)
+        self.velocity_pub.publish(velocity)
 
     def _publisher_for_world(self, world_name: str):
         publisher = self._publisher_cache.get(world_name)
@@ -121,6 +147,8 @@ def main(args=None) -> None:
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
+        pass
+    except ExternalShutdownException:
         pass
     finally:
         if hasattr(node, "destroy_node"):

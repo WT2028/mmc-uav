@@ -1,0 +1,2 @@
+stamp_s,phase_s,thrust_N,force_body_x_N,force_body_y_N,force_body_z_N,moment_body_x_Nm,moment_body_y_Nm,moment_body_z_Nm,force_world_x_N,force_world_y_N,force_world_z_N,moment_world_x_Nm,moment_world_y_Nm,moment_world_z_Nm
+0.001,-1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0

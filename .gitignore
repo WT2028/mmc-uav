@@ -12,6 +12,7 @@ __pycache__/
 .ruff_cache/
 
 # Runtime logs and generated plots
+results/
 src/mmc_control/fly_data/
 src/mmc_control/output_picture/
 fly_data/
@@ -37,3 +38,6 @@ Thumbs.db
 *.tmp
 *.bak
 *.orig
+
+# Optional local Python environment
+.venv/

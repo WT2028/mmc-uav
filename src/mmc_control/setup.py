@@ -28,6 +28,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'experiment_node = mmc_control.experiment_node:main',
             'controller_node = mmc_control.mmc_uav:main',
             'keyboard_teleop_node = mmc_control.keyboard_teleop:main',
             'drone_visualizer = mmc_control.drone_visualizer:main',

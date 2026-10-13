@@ -1,0 +1,2 @@
+# Add this package's Gazebo system plugins to the search path.
+ament_prepend_unique_value GZ_SIM_SYSTEM_PLUGIN_PATH "$AMENT_CURRENT_PREFIX/lib"

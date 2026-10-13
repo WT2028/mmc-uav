@@ -1,0 +1,13 @@
+{
+  "completed": true,
+  "initialization_marker_count": 1,
+  "default_urdf_unchanged": true,
+  "files_sha256": {
+    "aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868",
+    "protocol.json": "a1b6fd97bfec13319dc097105112702308ae59001f9e395b98f35050b328d439",
+    "initialization_markers.csv": "5b51907c0a5584eb656d0947140a12cc3b549acf7685f1ef6991810bb188dffc",
+    "raw_physical_body.csv": "a35d2c46d8befdb02113d4489133356819df535f979bc9aa4abbc11c35269641",
+    "raw_wrench.csv": "fb137a38d45b99dbbc65e2e9ec8a5e2e17a865efe5288de6c983257399c841d3",
+    "raw_joint_states.csv": "f15467c9926fec396869e5ae996be2bdf0dd08a6034c3cb059cfb204af117b84"
+  }
+}

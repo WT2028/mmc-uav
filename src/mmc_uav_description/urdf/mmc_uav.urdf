@@ -4,11 +4,16 @@
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
   name="mmc_uav_description">
+  <!-- Body reference rebased to the complete vehicle CoG at zero joint positions.
+       New origin in the original CAD frame [m]: -1.2765511418678223e-10 9.3711794139119825e-06 0.034763627586206887.
+       Base inertial/visual/collision, child joints and IMU pose are translated
+       together. Link masses, CoM inertias and relative geometry are unchanged.
+       The equivalent aerodynamic wrench acts at this new base_link origin. -->
   <link
     name="base_link">
     <inertial>
       <origin
-        xyz="8.0111E-17 1.6376E-16 0.035"
+        xyz="1.2765519429778223e-10 -9.3711794137482222e-06 0.00023637241379311641"
         rpy="0 0 0" />
       <mass
         value="1.05" />
@@ -22,7 +27,7 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 0 0"
+        xyz="1.2765511418678223e-10 -9.3711794139119825e-06 -0.034763627586206887"
         rpy="0 0 0" />
       <geometry>
         <mesh
@@ -36,7 +41,7 @@
     </visual>
     <collision>
       <origin
-        xyz="0 0 0"
+        xyz="1.2765511418678223e-10 -9.3711794139119825e-06 -0.034763627586206887"
         rpy="0 0 0" />
       <geometry>
         <mesh
@@ -88,7 +93,7 @@
     name="joint_rotor_upper"
     type="continuous">
     <origin
-      xyz="0 0 0.05"
+      xyz="1.2765511418678223e-10 -9.3711794139119825e-06 0.015236372413793116"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -144,7 +149,7 @@
     name="joint_slider_blue"
     type="prismatic">
     <origin
-      xyz="0.18 0.00015028 0.0050303"
+      xyz="0.1800000001276551 0.00014090882058608801 -0.029733327586206885"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -202,7 +207,7 @@
     name="joint_slider_red"
     type="prismatic">
     <origin
-      xyz="-0.18 0.00012143 0.0050303"
+      xyz="-0.17999999987234488 0.00011205882058608802 -0.029733327586206885"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -260,7 +265,7 @@
     name="joint_slider_purple"
     type="prismatic">
     <origin
-      xyz="0 -0.18 0.0050303"
+      xyz="1.2765511418678223e-10 -0.1800093711794139 -0.029733327586206885"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -318,7 +323,7 @@
     name="joint_slider_green"
     type="prismatic">
     <origin
-      xyz="0 0.18 0.0050303"
+      xyz="1.2765511418678223e-10 0.17999062882058608 -0.029733327586206885"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -376,7 +381,7 @@
     name="joint_rotor_lower"
     type="continuous">
     <origin
-      xyz="0 0 0.02"
+      xyz="1.2765511418678223e-10 -9.3711794139119825e-06 -0.014763627586206887"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -398,33 +403,53 @@
       <topic>/model/mmc_uav/joint_state</topic>
     </plugin>
 
-    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+    <plugin filename="mmc-slider-servo-system" name="mmc::SliderServo">
       <joint_name>joint_slider_blue</joint_name>
       <topic>/model/mmc_uav/joint/joint_slider_blue/cmd_pos</topic>
-      <p_gain>8.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>2.1</d_gain>
+      <wn>20.0</wn>
+      <zeta>1.2</zeta>
+      <moving_mass>0.05</moving_mass>
+      <velocity_limit>0.25</velocity_limit>
+      <command_limit>0.135</command_limit>
+      <mechanical_limit>0.15</mechanical_limit>
+      <effort_limit>2.0</effort_limit>
+      <load_observer_tau>0.02</load_observer_tau>
     </plugin>
-    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+    <plugin filename="mmc-slider-servo-system" name="mmc::SliderServo">
       <joint_name>joint_slider_red</joint_name>
       <topic>/model/mmc_uav/joint/joint_slider_red/cmd_pos</topic>
-      <p_gain>8.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>2.1</d_gain>
+      <wn>20.0</wn>
+      <zeta>1.2</zeta>
+      <moving_mass>0.05</moving_mass>
+      <velocity_limit>0.25</velocity_limit>
+      <command_limit>0.135</command_limit>
+      <mechanical_limit>0.15</mechanical_limit>
+      <effort_limit>2.0</effort_limit>
+      <load_observer_tau>0.02</load_observer_tau>
     </plugin>
-    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+    <plugin filename="mmc-slider-servo-system" name="mmc::SliderServo">
       <joint_name>joint_slider_green</joint_name>
       <topic>/model/mmc_uav/joint/joint_slider_green/cmd_pos</topic>
-      <p_gain>8.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>2.1</d_gain>
+      <wn>20.0</wn>
+      <zeta>1.2</zeta>
+      <moving_mass>0.05</moving_mass>
+      <velocity_limit>0.25</velocity_limit>
+      <command_limit>0.135</command_limit>
+      <mechanical_limit>0.15</mechanical_limit>
+      <effort_limit>2.0</effort_limit>
+      <load_observer_tau>0.02</load_observer_tau>
     </plugin>
-    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+    <plugin filename="mmc-slider-servo-system" name="mmc::SliderServo">
       <joint_name>joint_slider_purple</joint_name>
       <topic>/model/mmc_uav/joint/joint_slider_purple/cmd_pos</topic>
-      <p_gain>8.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>2.1</d_gain>
+      <wn>20.0</wn>
+      <zeta>1.2</zeta>
+      <moving_mass>0.05</moving_mass>
+      <velocity_limit>0.25</velocity_limit>
+      <command_limit>0.135</command_limit>
+      <mechanical_limit>0.15</mechanical_limit>
+      <effort_limit>2.0</effort_limit>
+      <load_observer_tau>0.02</load_observer_tau>
     </plugin>
 
     <plugin
@@ -480,8 +505,12 @@
     </gazebo>
 
   <gazebo reference="base_link">
-    <enable_wind>true</enable_wind>
+    <!-- Body drag is applied by mmc_control from Gazebo wind velocity.
+         Disable WindEffects' separate approximate link force to avoid double counting. -->
+    <enable_wind>false</enable_wind>
     <sensor name="imu_sensor" type="imu">
+      <!-- Preserve the original IMU mounting point after rebasing base_link. -->
+      <pose>1.2765511418678223e-10 -9.3711794139119825e-06 -0.034763627586206887 0 0 0</pose>
       <always_on>1</always_on>
       <update_rate>250</update_rate>
       <visualize>true</visualize>

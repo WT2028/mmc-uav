@@ -60,6 +60,8 @@
         <hover_hold_time>0.0</hover_hold_time>
       </mmc_wind_schedule>
     </plugin>
+    <!-- Publish actual wind for the explicit MMC aerodynamic model; no additional force. -->
+    <plugin filename="mmc-wind-velocity-system" name="mmc::WindVelocityPublisher"/>
     <wind>
       <linear_velocity>0 0 0</linear_velocity>
     </wind>

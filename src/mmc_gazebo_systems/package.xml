@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>mmc_gazebo_systems</name>
+  <version>0.2.0</version>
+  <description>Gazebo Harmonic systems used by the MMC UAV simulation.</description>
+  <maintainer email="15669367687@163.com">WT2028</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>gz-msgs10</depend>
+  <depend>gz-sim8</depend>
+  <depend>gz-transport13</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

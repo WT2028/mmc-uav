@@ -51,18 +51,9 @@
           <stddev>0</stddev>
         </noise>
       </vertical>
-      <!--
-      [已禁用] 风扰调度配置，回归定点悬停调试阶段 (2026-03-29)
-      <mmc_wind_schedule>
-        <activation_mode>hover_hold</activation_mode>
-        <target_linear_velocity>3 0 0</target_linear_velocity>
-        <hover_target_z>1.5</hover_target_z>
-        <hover_z_tol>0.15</hover_z_tol>
-        <hover_speed_tol>0.15</hover_speed_tol>
-        <hover_hold_time>3.0</hover_hold_time>
-      </mmc_wind_schedule>
-      -->
     </plugin>
+    <!-- Publish actual wind for the explicit MMC aerodynamic model; no additional force. -->
+    <plugin filename="mmc-wind-velocity-system" name="mmc::WindVelocityPublisher"/>
     <wind>
       <linear_velocity>0 0 0</linear_velocity>
     </wind>

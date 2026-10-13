@@ -16,6 +16,7 @@ import casadi as ca
 import osqp
 import numpy as np
 import rclpy
+from rclpy._rclpy_pybind11 import RCLError
 from scipy import sparse
 try:
     from actuator_msgs.msg import Actuators
@@ -71,6 +72,7 @@ except ImportError:  # pragma: no cover - 测试桩环境兜底
         def __init__(self):
             self.markers = []
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 from rclpy.qos import qos_profile_sensor_data
 from ros_gz_interfaces.msg import EntityWrench, Entity
 try:
@@ -333,15 +335,16 @@ class Params:
     # 气动阻力模型系数
     rho: float = 1.225  # 空气密度，单位 kg/m^3
 
-    # 阻力系数（Cd），参考方形钝体
+    # 正文 C_D,j：沿用现有名义有效系数，非实测辨识值。
     Cd_side: float = 1.2  # 侧面阻力系数（X/Y 轴）
     Cd_top: float = 1.3  # 垂直阻力系数（Z 轴，平板流）
 
     # 迎风面积（参考面积）[m^2]
-    # 假设机身高度 h=0.1 m，边长 l=0.4 m
-    S_side: float = 0.072  # 侧面参考面积 = l * h = 0.4 * 0.09
-    S_top: float = 0.16  # 顶面参考面积 = l * l = 0.4 * 0.4
+    # 正文 A_j：沿用名义参考面积，不以未经核实的几何尺寸重新标定。
+    S_side: float = 0.072  # A_x = A_y
+    S_top: float = 0.16  # A_z
 
+    # 正文 D_omega = diag(k_a,x, k_a,y, k_a,z)，单位 N*m*s/rad。
     kp: float = 0.04
     kq: float = 0.04
     kr: float = 0.02
@@ -562,6 +565,10 @@ FLIGHT_LOG_HEADERS = [
     'Wind_status_detail',
     'Wind_runtime_active',
     'Wind_activation_time',
+    'Wind_actual_received',
+    'Wind_actual_vx_world',
+    'Wind_actual_vy_world',
+    'Wind_actual_vz_world',
     'NDO_d_force_hat_x',
     'NDO_d_force_hat_y',
     'NDO_d_force_hat_z',
@@ -574,6 +581,19 @@ FLIGHT_LOG_HEADERS = [
     'NDO_comp_theta_torque_deg',
     'NDO_comp_phi_total_deg',
     'NDO_comp_theta_total_deg',
+    'Joint_feedback_fresh',
+    'Joint_feedback_stamp_s',
+    'Joint_feedback_receive_s',
+    'Joint_feedback_clock_s',
+    'MPC_solver_status',
+    'MPC_solution_accepted',
+    'MPC_constraint_violation',
+    'MPC_consecutive_failures',
+    'Tau_z_request_raw',
+    'Tau_z_feasible_min',
+    'Tau_z_feasible_max',
+    'Tau_z_request_clipped',
+    'Tau_z_allocated',
 ]
 FLIGHT_LOG_COLUMN_INDEX = {name: idx for idx, name in enumerate(FLIGHT_LOG_HEADERS)}
 
@@ -938,7 +958,7 @@ class Input6:
     chi_cmd: float = 0.0
     ups_cmd: float = 0.0
 
-# ===================== 转动惯量相关（论文式(24)(26)） =====================
+# ===================== 瞬时质心处的惯量与机体系分量导数 =====================
 @dataclass
 class Sigma:
     s2: float
@@ -1015,8 +1035,10 @@ def cal_inertia(P: Params, S: Sigma) -> Inertia:
     Im_y = P.Im_y
     Im_z = P.Im_z
 
-    add_xx = S.s10 + S.s6 + S.s5 + S.s3 - S.s8
-    add_yy = S.s9 + S.s6 + S.s4 + S.s2 - S.s7
+    # 由四质量的平行轴求和得到；来源文献式 (24)/(26) 的 s7/s8 对调。
+    # Ixx 仅随 ups 改变，Iyy 仅随 chi 改变。
+    add_xx = S.s10 + S.s6 + S.s5 + S.s3 - S.s7
+    add_yy = S.s9 + S.s6 + S.s4 + S.s2 - S.s8
     add_zz = m * l * l + S.s10 + S.s9 + S.s5 + S.s4 + S.s3 + S.s2 - S.s8 - S.s7
 
     Ixx = Ib_x + 4.0 * Im_x + add_xx
@@ -1024,8 +1046,8 @@ def cal_inertia(P: Params, S: Sigma) -> Inertia:
     Izz = Ib_z + 4.0 * Im_z + add_zz
     Ixy = S.s1
 
-    dIxx = S.ds10 + S.ds6 + S.ds5 + S.ds3 - S.ds8
-    dIyy = S.ds9 + S.ds6 + S.ds4 + S.ds2 - S.ds7
+    dIxx = S.ds10 + S.ds6 + S.ds5 + S.ds3 - S.ds7
+    dIyy = S.ds9 + S.ds6 + S.ds4 + S.ds2 - S.ds8
     dIzz = S.ds10 + S.ds9 + S.ds5 + S.ds4 + S.ds3 + S.ds2 - S.ds8 - S.ds7
     dIxy = S.ds1
 
@@ -1044,30 +1066,54 @@ def attitude_kinematics(p, q, r, phi, theta):
 
     return phid, thetad, psid
 
-def calculate_aerodynamic_forces(x: State6, P: Params):
-    """
-    计算气动阻力和转动阻尼力矩
-    返回: (F_drag_inertial, M_damping_inertial, M_damping_body)
-    - F_drag_inertial: 惯性系下的平动阻力 [N]
-    - M_damping_inertial: 惯性系下的转动阻尼力矩 [N*m]
-    - M_damping_body: 机体系下的转动阻尼力矩 [N*m]
+@dataclass(frozen=True)
+class AerodynamicLoads:
+    force_world: np.ndarray
+    force_body: np.ndarray
+    moment_cog_body: np.ndarray
+    moment_origin_body: np.ndarray
+
+
+def calculate_aerodynamic_loads(
+    x: State6, P: Params, wind_world: Optional[Sequence[float]] = None,
+) -> AerodynamicLoads:
+    """正文式 (7)：机体原点的相对气流阻力，以及关于瞬时系统质心的力矩。
+
+    wind_world 是惯性系风速 [m/s]；缺省零风用于未测风条件下的名义预测。
+    位置/速度属于机体原点，故此处不再加质心速度或 omega x r 修正。
     """
     Tb_v, Tv_b = T_transformation(x)
-    
-    v_ground = np.array([x.vx, x.vy, x.vz])
-    v_body = Tv_b @ v_ground
-    
-    Fx = -0.5 * P.rho * P.S_side * P.Cd_side * v_body[0] * abs(v_body[0])
-    Fy = -0.5 * P.rho * P.S_side * P.Cd_side * v_body[1] * abs(v_body[1])
-    Fz = -0.5 * P.rho * P.S_top * P.Cd_top * v_body[2] * abs(v_body[2])
-    
-    F_drag_body = np.array([Fx, Fy, Fz])
-    F_drag_inertial = Tb_v @ F_drag_body
-    
-    M_damping_body = -np.array([P.kp * x.p, P.kq * x.q, P.kr * x.r])
-    M_damping_inertial = Tb_v @ M_damping_body
+    wind = np.zeros(3) if wind_world is None else np.asarray(wind_world, dtype=float).reshape(3)
+    v_rel_body = Tv_b @ (np.array([x.vx, x.vy, x.vz]) - wind)
+    drag_factors = 0.5 * P.rho * np.array([
+        P.Cd_side * P.S_side, P.Cd_side * P.S_side, P.Cd_top * P.S_top,
+    ])
+    force_body = -drag_factors * v_rel_body * np.abs(v_rel_body)
+    moment_origin = -np.array([P.kp * x.p, P.kq * x.q, P.kr * x.r])
+    cog = 2.0 * P.mu * np.array([x.chi, x.ups, 0.0])
+    moment_cog = moment_origin - np.cross(cog, force_body)
+    return AerodynamicLoads(Tb_v @ force_body, force_body, moment_cog, moment_origin)
 
-    return F_drag_inertial, M_damping_inertial, M_damping_body
+
+def calculate_aerodynamic_forces(
+    x: State6, P: Params, wind_world: Optional[Sequence[float]] = None,
+):
+    """返回 (惯性系气动力, 惯性系质心气动力矩, 机体系质心气动力矩)。"""
+    loads = calculate_aerodynamic_loads(x, P, wind_world)
+    Tb_v, _ = T_transformation(x)
+    return loads.force_world, Tb_v @ loads.moment_cog_body, loads.moment_cog_body
+
+
+def calculate_aerodynamic_wrench_at_body_origin(
+    x: State6, P: Params, wind_world: Optional[Sequence[float]] = None,
+):
+    """Gazebo 机体原点载荷（世界系）：只发布阻力和纯阻尼。
+
+    多体物理引擎由作用点自动产生关于系统质心的 -r_c x F_a，不能重复发布。
+    """
+    loads = calculate_aerodynamic_loads(x, P, wind_world)
+    Tb_v, _ = T_transformation(x)
+    return loads.force_world, Tb_v @ loads.moment_origin_body
 
 
 def resolve_body_wrench_to_world(
@@ -1120,99 +1166,64 @@ def update_wrench_scale(
     return dt_for_scale, scale
 
 # ===================== 六自由度非线性动力学模型 =====================
-def update_6dof_model(P: Params, x: State6, u: Input6) -> State6:
-    F_drag_inertial, M_damping_inertial, M_damping_body = calculate_aerodynamic_forces(x, P)
-    
-    Tb_v, Tv_b = T_transformation(x)
+def update_6dof_model(
+    P: Params, x: State6, u: Input6, external_loads: Optional[Sequence[float]] = None,
+) -> State6:
+    """完整模型；external_loads = [v_w^i, F_res^i, M_res^0]，共 9 个分量。
 
-    Md = M_damping_body
+    缺省为零，供 MPC/NDO 名义模型使用；不会把仿真真值风速当作控制器测量。
+    """
+    w = np.zeros(9) if external_loads is None else np.asarray(external_loads, dtype=float).reshape(9)
+    F_drag_inertial, _, M_aero_body = calculate_aerodynamic_forces(x, P, w[:3])
+    F_external_inertial = F_drag_inertial + w[3:6]
+    M_external_body = M_aero_body + w[6:9]
+    Tb_v, _ = T_transformation(x)
 
     # 滑块执行器二阶动态
     wn, zt = P.wn_mass, P.zeta_mass
     chi_dd = wn * wn * (u.chi_cmd - x.chi) - 2.0 * zt * wn * x.chi_d
     ups_dd = wn * wn * (u.ups_cmd - x.ups) - 2.0 * zt * wn * x.ups_d
 
-    # 转动惯量
     S = cal_sigma(P, x.chi, x.ups, x.chi_d, x.ups_d)
     I = cal_inertia(P, S)
+    M, mu, m = P.M, P.mu, P.m
 
-    M = P.M
-    mu = P.mu
-    m = P.m
-    b = P.b_thrust
-    g = P.g
-
-    # 转动方程矩阵形式（论文式(57)）
-    # 旋转动力学矩阵形式：A * w_dot = B_vec
-    # 为了得到 w_dot（角加速度），B_vec 的每一项都必须是“力矩 / 主惯量”
-
-    A = np.array([
-        [1.0, I.Ixy / I.Ixx, 0.0],
-        [I.Ixy / I.Iyy, 1.0, 0.0],
-        [0.0, 0.0, 1.0]
+    # 当前英文稿式 (6)：所有向量在机体系表达，I_dot/h_dot 为分量导数。
+    inertia = np.array([
+        [I.Ixx, I.Ixy, 0.0],
+        [I.Ixy, I.Iyy, 0.0],
+        [0.0, 0.0, I.Izz]
     ])
-
-    sum_w1w2 = u.thrust / b
-
-    B_p = (-I.dIxx * x.p / I.Ixx - I.dIxy * x.q / I.Ixx
-           - x.q * I.Izz * x.r / I.Ixx + x.r * I.Iyy * x.q / I.Ixx
-           - x.q * (4.0 * m * mu * x.ups * x.chi_d - 4.0 * m * mu * x.chi * x.ups_d) / I.Ixx
-           - 2.0 * b * mu * x.ups * sum_w1w2 / I.Ixx
-           + Md[0] / I.Ixx)
-
-    B_q = (-I.dIxy * x.p / I.Iyy - I.dIyy * x.q / I.Iyy
-           - x.r * (I.Ixx * x.p + I.Ixy * x.q) / I.Iyy + x.p * I.Izz * x.r / I.Iyy
-           - x.p * (4.0 * m * mu * x.ups * x.chi_d - 4.0 * m * mu * x.chi * x.ups_d) / I.Iyy
-           + 2.0 * b * mu * x.chi * sum_w1w2 / I.Iyy
-           + Md[1] / I.Iyy)
-
-    B_r = (-I.dIzz * x.r / I.Izz - x.p * (I.Ixy * x.p + I.Iyy * x.q) / I.Izz
-           + x.q * (I.Ixx * x.p + I.Ixy * x.q) / I.Izz
-           - 4.0 * m * mu * x.ups * chi_dd / I.Izz - 4.0 * m * mu * x.chi * ups_dd / I.Izz
-           + u.tau_z / I.Izz
-           + Md[2] / I.Izz)
-
-    B_vec = np.array([B_p, B_q, B_r])
+    inertia_dot = np.array([
+        [I.dIxx, I.dIxy, 0.0],
+        [I.dIxy, I.dIyy, 0.0],
+        [0.0, 0.0, I.dIzz]
+    ])
+    omega = np.array([x.p, x.q, x.r])
+    h_m = np.array([0.0, 0.0, 4.0 * m * mu * (x.ups * x.chi_d - x.chi * x.ups_d)])
+    h_m_dot = np.array([0.0, 0.0, 4.0 * m * mu * (x.ups * chi_dd - x.chi * ups_dd)])
+    cog = 2.0 * mu * np.array([x.chi, x.ups, 0.0])
+    thrust_body = np.array([0.0, 0.0, u.thrust])
+    torque = (-np.cross(cog, thrust_body) + np.array([0.0, 0.0, u.tau_z])
+              + M_external_body)
+    angular_rhs = (torque - inertia_dot @ omega
+                   - np.cross(omega, inertia @ omega + h_m) - h_m_dot)
 
     try:
-        pd, qd, rd = np.linalg.solve(A, B_vec)
+        omega_dot = np.linalg.solve(inertia, angular_rhs)
     except np.linalg.LinAlgError:
-        pd, qd, rd = 0.0, 0.0, 0.0
+        omega_dot = np.zeros(3)
+    pd, qd, rd = omega_dot
 
-    # 平动方程（论文式(48)）
-    cphi = math.cos(x.phi)
-    sphi = math.sin(x.phi)
-    ctheta = math.cos(x.theta)
-    stheta = math.sin(x.theta)
-    cpsi = math.cos(x.psi)
-    spsi = math.sin(x.psi)
+    # 当前英文稿式 (5)：位置/速度属于机体原点，质心修正需整体转入惯性系。
+    cog_dot = 2.0 * mu * np.array([x.chi_d, x.ups_d, 0.0])
+    cog_ddot = 2.0 * mu * np.array([chi_dd, ups_dd, 0.0])
+    cog_acc_body = (cog_ddot + 2.0 * np.cross(omega, cog_dot)
+                    + np.cross(omega_dot, cog) + np.cross(omega, np.cross(omega, cog)))
+    x_dd, y_dd, z_dd = (Tb_v @ (thrust_body / M - cog_acc_body)
+                       + F_external_inertial / M + np.array([0.0, 0.0, -P.g]))
 
-    x_dd = (u.thrust / M * (cphi * stheta * cpsi + sphi * spsi)
-            - mu * (2.0 * chi_dd - 2.0 * x.r * x.ups_d)
-            + 2.0 * rd * mu * x.ups + 2.0 * x.r * mu * x.ups_d
-            - (2.0 * mu * x.ups * x.p * x.q
-               - 2.0 * mu * x.chi * x.q * x.q
-               - 2.0 * mu * x.chi * x.r * x.r)
-            + F_drag_inertial[0] / M)
-
-    y_dd = (u.thrust / M * (cphi * stheta * spsi - sphi * cpsi)
-            - mu * (2.0 * ups_dd + 2.0 * x.r * x.chi_d)
-            - (2.0 * rd * mu * x.chi + 2.0 * x.r * mu * x.chi_d)
-            + 2.0 * mu * x.ups * x.q * x.q
-            + 2.0 * mu * x.ups * x.p * x.p
-            + 2.0 * mu * x.chi * x.p * x.q
-            + F_drag_inertial[1] / M)
-
-    z_dd = (u.thrust / M * cphi * ctheta - g
-            - mu * (2.0 * x.p * x.ups_d - 2.0 * x.q * x.chi_d)
-            - (2.0 * pd * mu * x.ups - 2.0 * qd * mu * x.chi
-               + 2.0 * x.p * mu * x.ups_d - 2.0 * x.q * mu * x.chi_d)
-            - (2.0 * mu * x.ups * x.q * x.r + 2.0 * mu * x.chi * x.p * x.r)
-            + F_drag_inertial[2] / M)
-
-    # 欧拉角变化率
     phid, thetad, psid = attitude_kinematics(x.p, x.q, x.r, x.phi, x.theta)
-
     dx = State6()
     dx.x, dx.y, dx.z = x.vx, x.vy, x.vz
     dx.vx, dx.vy, dx.vz = x_dd, y_dd, z_dd
@@ -1220,12 +1231,12 @@ def update_6dof_model(P: Params, x: State6, u: Input6) -> State6:
     dx.p, dx.q, dx.r = pd, qd, rd
     dx.chi, dx.ups = x.chi_d, x.ups_d
     dx.chi_d, dx.ups_d = chi_dd, ups_dd
-
     return dx
 
 # ===================== 四阶龙格-库塔数值积分（六自由度） =====================
-def rk4_state6(P: Params, x: State6, t: float, h: float, u: Input6):  # 把无人机推向未来的下一个时刻。
-    k1 = update_6dof_model(P, x, u)
+def rk4_state6(P: Params, x: State6, t: float, h: float, u: Input6, external_loads=None):
+    """单步内保持外部载荷参数不变的 RK4 积分。"""
+    k1 = update_6dof_model(P, x, u, external_loads)
 
     x2 = State6(**{**x.__dict__})
     x2.x += 0.5 * h * k1.x
@@ -1245,7 +1256,7 @@ def rk4_state6(P: Params, x: State6, t: float, h: float, u: Input6):  # 把无�
     x2.chi_d += 0.5 * h * k1.chi_d
     x2.ups_d += 0.5 * h * k1.ups_d
 
-    k2 = update_6dof_model(P, x2, u)
+    k2 = update_6dof_model(P, x2, u, external_loads)
 
     x3 = State6(**{**x.__dict__})
     x3.x += 0.5 * h * k2.x
@@ -1265,7 +1276,7 @@ def rk4_state6(P: Params, x: State6, t: float, h: float, u: Input6):  # 把无�
     x3.chi_d += 0.5 * h * k2.chi_d
     x3.ups_d += 0.5 * h * k2.ups_d
 
-    k3 = update_6dof_model(P, x3, u)
+    k3 = update_6dof_model(P, x3, u, external_loads)
 
     x4 = State6(**{**x.__dict__})
     x4.x += h * k3.x
@@ -1285,7 +1296,7 @@ def rk4_state6(P: Params, x: State6, t: float, h: float, u: Input6):  # 把无�
     x4.chi_d += h * k3.chi_d
     x4.ups_d += h * k3.ups_d
 
-    k4 = update_6dof_model(P, x4, u)
+    k4 = update_6dof_model(P, x4, u, external_loads)
 
     # 四阶龙格-库塔更新：x += (h/6) * (k1 + 2k2 + 2k3 + k4)
     x.x += (h / 6.0) * (k1.x + 2.0 * k2.x + 2.0 * k3.x + k4.x)
@@ -2669,7 +2680,12 @@ class OuterPosController:
         self.edx_filt = 0.0
         self.edy_filt = 0.0
 
-def build_casadi_dynamics(P: Params):
+def build_casadi_dynamics(P: Params, with_external_loads: bool = False):
+    """与数值模型一致；完整接口的第 4 个输入为 w=[v_w^i,F_res^i,M_res^0]。
+
+    默认保留 MPC 三输入接口，在同一模型中令 w=0；真实未知风扰由 NDO 估计。
+    """
+    w = ca.SX.sym('w', 9) if with_external_loads else ca.DM.zeros(9)
     x = ca.SX.sym('x', 16)
     u = ca.SX.sym('u', 3)
     thrust = ca.SX.sym('thrust')
@@ -2699,14 +2715,14 @@ def build_casadi_dynamics(P: Params):
     Tv_b = Tb_v.T
 
     v_ground = ca.vertcat(vx_g, vy_g, vz_g)
-    v_air_body = Tv_b @ v_ground
+    v_air_body = Tv_b @ (v_ground - w[:3])
     vx_air, vy_air, vz_air = v_air_body[0], v_air_body[1], v_air_body[2]
 
     Fx_drag = -0.5 * P.rho * P.S_side * P.Cd_side * vx_air * ca.fabs(vx_air)
     Fy_drag = -0.5 * P.rho * P.S_side * P.Cd_side * vy_air * ca.fabs(vy_air)
     Fz_drag = -0.5 * P.rho * P.S_top * P.Cd_top * vz_air * ca.fabs(vz_air)
     F_drag_body = ca.vertcat(Fx_drag, Fy_drag, Fz_drag)
-    Fd = Tb_v @ F_drag_body
+    Fd = Tb_v @ F_drag_body + w[3:6]
 
     w_b = ca.vertcat(p, q, r)
     M_d_params = ca.DM([
@@ -2714,7 +2730,8 @@ def build_casadi_dynamics(P: Params):
         [0.0, P.kq, 0.0],
         [0.0, 0.0, P.kr]
     ])
-    Md = -M_d_params @ w_b
+    cog_aero = 2.0 * P.mu * ca.vertcat(chi, ups, 0.0)
+    Md = -ca.cross(cog_aero, F_drag_body) - M_d_params @ w_b + w[6:9]
 
     wn, zt = P.wn_mass, P.zeta_mass
     chi_dd = wn * wn * (chi_cmd - chi) - 2.0 * zt * wn * chi_d
@@ -2723,64 +2740,37 @@ def build_casadi_dynamics(P: Params):
     S = cal_sigma(P, chi, ups, chi_d, ups_d)
     I = cal_inertia(P, S)
 
-    M = P.M
-    mu = P.mu
-    m = P.m
-    b = P.b_thrust
-    g = P.g
+    M, mu, m = P.M, P.mu, P.m
 
-    A_dyn = ca.vertcat(
-        ca.horzcat(1.0, I.Ixy / I.Ixx, 0.0),
-        ca.horzcat(I.Ixy / I.Iyy, 1.0, 0.0),
-        ca.horzcat(0.0, 0.0, 1.0)
+    # 与 update_6dof_model 一致，直接实现正文式 (6) 的向量角动量平衡。
+    inertia = ca.vertcat(
+        ca.horzcat(I.Ixx, I.Ixy, 0.0),
+        ca.horzcat(I.Ixy, I.Iyy, 0.0),
+        ca.horzcat(0.0, 0.0, I.Izz)
     )
-
-    sum_w1w2 = thrust / b
-
-    B_p = (-I.dIxx * p / I.Ixx - I.dIxy * q / I.Ixx
-           - q * I.Izz * r / I.Ixx + r * I.Iyy * q / I.Ixx
-           - q * (4.0 * m * mu * ups * chi_d - 4.0 * m * mu * chi * ups_d) / I.Ixx
-           - 2.0 * b * mu * ups * sum_w1w2 / I.Ixx
-           + Md[0] / I.Ixx)
-
-    B_q = (-I.dIxy * p / I.Iyy - I.dIyy * q / I.Iyy
-           - r * (I.Ixx * p + I.Ixy * q) / I.Iyy + p * I.Izz * r / I.Iyy
-           - p * (4.0 * m * mu * ups * chi_d - 4.0 * m * mu * chi * ups_d) / I.Iyy
-           + 2.0 * b * mu * chi * sum_w1w2 / I.Iyy
-           + Md[1] / I.Iyy)
-
-    B_r = (-I.dIzz * r / I.Izz - p * (I.Ixy * p + I.Iyy * q) / I.Izz
-           + q * (I.Ixx * p + I.Ixy * q) / I.Izz
-           - 4.0 * m * mu * ups * chi_dd / I.Izz - 4.0 * m * mu * chi * ups_dd / I.Izz
-           + tau_z / I.Izz
-           + Md[2] / I.Izz)
-
-    B_vec = ca.vertcat(B_p, B_q, B_r)
-    w_dot = ca.solve(A_dyn, B_vec)
+    inertia_dot = ca.vertcat(
+        ca.horzcat(I.dIxx, I.dIxy, 0.0),
+        ca.horzcat(I.dIxy, I.dIyy, 0.0),
+        ca.horzcat(0.0, 0.0, I.dIzz)
+    )
+    h_m = ca.vertcat(0.0, 0.0, 4.0 * m * mu * (ups * chi_d - chi * ups_d))
+    h_m_dot = ca.vertcat(0.0, 0.0, 4.0 * m * mu * (ups * chi_dd - chi * ups_dd))
+    cog = 2.0 * mu * ca.vertcat(chi, ups, 0.0)
+    thrust_body = ca.vertcat(0.0, 0.0, thrust)
+    torque = -ca.cross(cog, thrust_body) + ca.vertcat(0.0, 0.0, tau_z) + Md
+    angular_rhs = (torque - inertia_dot @ w_b
+                   - ca.cross(w_b, inertia @ w_b + h_m) - h_m_dot)
+    w_dot = ca.solve(inertia, angular_rhs)
     pd, qd, rd = w_dot[0], w_dot[1], w_dot[2]
 
-    x_dd = (thrust / M * (cphi * stheta * cpsi + sphi * spsi)
-            - mu * (2.0 * chi_dd - 2.0 * r * ups_d)
-            + 2.0 * rd * mu * ups + 2.0 * r * mu * ups_d
-            - (2.0 * mu * ups * p * q
-               - 2.0 * mu * chi * q * q
-               - 2.0 * mu * chi * r * r)
-            + Fd[0] / M)
-
-    y_dd = (thrust / M * (cphi * stheta * spsi - sphi * cpsi)
-            - mu * (2.0 * ups_dd + 2.0 * r * chi_d)
-            - (2.0 * rd * mu * chi + 2.0 * r * mu * chi_d)
-            + 2.0 * mu * ups * q * q
-            + 2.0 * mu * ups * p * p
-            + 2.0 * mu * chi * p * q
-            + Fd[1] / M)
-
-    z_dd = (thrust / M * cphi * ctheta - g
-            - mu * (2.0 * p * ups_d - 2.0 * q * chi_d)
-            - (2.0 * pd * mu * ups - 2.0 * qd * mu * chi
-               + 2.0 * p * mu * ups_d - 2.0 * q * mu * chi_d)
-            - (2.0 * mu * ups * q * r + 2.0 * mu * chi * p * r)
-            + Fd[2] / M)
+    # 正文式 (5)：质心相对运动的整个加速度修正从机体系旋转到惯性系。
+    cog_dot = 2.0 * mu * ca.vertcat(chi_d, ups_d, 0.0)
+    cog_ddot = 2.0 * mu * ca.vertcat(chi_dd, ups_dd, 0.0)
+    cog_acc_body = (cog_ddot + 2.0 * ca.cross(w_b, cog_dot)
+                    + ca.cross(w_dot, cog) + ca.cross(w_b, ca.cross(w_b, cog)))
+    acceleration = (Tb_v @ (thrust_body / M - cog_acc_body)
+                    + Fd / M + ca.vertcat(0.0, 0.0, -P.g))
+    x_dd, y_dd, z_dd = acceleration[0], acceleration[1], acceleration[2]
 
     ttheta = ca.tan(theta)
     phid = p + r * (cphi * ttheta) + q * (sphi * ttheta)
@@ -2797,9 +2787,10 @@ def build_casadi_dynamics(P: Params):
 
     A = ca.jacobian(dx, x)
     B = ca.jacobian(dx, u)
-    return ca.Function('get_AB', [x, u, thrust], [A, B, dx])
+    inputs = [x, u, thrust, w] if with_external_loads else [x, u, thrust]
+    return ca.Function('get_AB', inputs, [A, B, dx])
 
-def compute_numerical_AB(P: Params, s_op: State6, u_op: np.ndarray, thrust_cmd: float, epsilon=1e-5):
+def compute_numerical_AB(P: Params, s_op: State6, u_op: np.ndarray, thrust_cmd: float, epsilon=1e-5, external_loads=None):
     """
     使用中心差分法计算雅可比矩阵 A 和 B。
     优点：自动同步 update_6dof_model 的任何修改，物理绝对一致。
@@ -2815,7 +2806,7 @@ def compute_numerical_AB(P: Params, s_op: State6, u_op: np.ndarray, thrust_cmd: 
     # 基础工作点导数 f0
     # 构造 Input6 对象
     u_base = Input6(thrust=thrust_cmd, tau_z=u_op[0], chi_cmd=u_op[1], ups_cmd=u_op[2])
-    dx_base = update_6dof_model(P, s_op, u_base)
+    dx_base = update_6dof_model(P, s_op, u_base, external_loads)
     f0 = np.array([dx_base.x, dx_base.y, dx_base.z, dx_base.vx, dx_base.vy, dx_base.vz,
                    dx_base.phi, dx_base.theta, dx_base.psi, dx_base.p, dx_base.q, dx_base.r,
                    dx_base.chi, dx_base.chi_d, dx_base.ups, dx_base.ups_d])
@@ -2834,14 +2825,14 @@ def compute_numerical_AB(P: Params, s_op: State6, u_op: np.ndarray, thrust_cmd: 
 
         # 正向微扰
         setattr(s_op, var_name, original_val + epsilon)  # 等价于 s_op.var_name = original_val + epsilon
-        dx_plus = update_6dof_model(P, s_op, u_base)
+        dx_plus = update_6dof_model(P, s_op, u_base, external_loads)
         f_plus = np.array([dx_plus.x, dx_plus.y, dx_plus.z, dx_plus.vx, dx_plus.vy, dx_plus.vz,
                            dx_plus.phi, dx_plus.theta, dx_plus.psi, dx_plus.p, dx_plus.q, dx_plus.r,
                            dx_plus.chi, dx_plus.chi_d, dx_plus.ups, dx_plus.ups_d])
 
         # 反向微扰
         setattr(s_op, var_name, original_val - epsilon)
-        dx_minus = update_6dof_model(P, s_op, u_base)
+        dx_minus = update_6dof_model(P, s_op, u_base, external_loads)
         f_minus = np.array([dx_minus.x, dx_minus.y, dx_minus.z, dx_minus.vx, dx_minus.vy, dx_minus.vz,
                             dx_minus.phi, dx_minus.theta, dx_minus.psi, dx_minus.p, dx_minus.q, dx_minus.r,
                             dx_minus.chi, dx_minus.chi_d, dx_minus.ups, dx_minus.ups_d])
@@ -2863,7 +2854,7 @@ def compute_numerical_AB(P: Params, s_op: State6, u_op: np.ndarray, thrust_cmd: 
         # 正向
         u_op[i] = orig_u + epsilon
         u_plus = Input6(thrust=thrust_cmd, tau_z=u_op[0], chi_cmd=u_op[1], ups_cmd=u_op[2])
-        dx_plus = update_6dof_model(P, s_op, u_plus)
+        dx_plus = update_6dof_model(P, s_op, u_plus, external_loads)
         f_plus = np.array([dx_plus.x, dx_plus.y, dx_plus.z, dx_plus.vx, dx_plus.vy, dx_plus.vz,
                            dx_plus.phi, dx_plus.theta, dx_plus.psi, dx_plus.p, dx_plus.q, dx_plus.r,
                            dx_plus.chi, dx_plus.chi_d, dx_plus.ups, dx_plus.ups_d])
@@ -2871,7 +2862,7 @@ def compute_numerical_AB(P: Params, s_op: State6, u_op: np.ndarray, thrust_cmd: 
         # 反向
         u_op[i] = orig_u - epsilon
         u_minus = Input6(thrust=thrust_cmd, tau_z=u_op[0], chi_cmd=u_op[1], ups_cmd=u_op[2])
-        dx_minus = update_6dof_model(P, s_op, u_minus)
+        dx_minus = update_6dof_model(P, s_op, u_minus, external_loads)
         f_minus = np.array([dx_minus.x, dx_minus.y, dx_minus.z, dx_minus.vx, dx_minus.vy, dx_minus.vz,
                             dx_minus.phi, dx_minus.theta, dx_minus.psi, dx_minus.p, dx_minus.q, dx_minus.r,
                             dx_minus.chi, dx_minus.chi_d, dx_minus.ups, dx_minus.ups_d])
@@ -3014,20 +3005,22 @@ class AttitudeMPC:
         self.u2_lim = min(float(self.P.u2_lim), max(1e-4, float(slider_soft_limit)))
         self.slider_vel_lim = float(self.P.slider_vel_max)
         self.delta_tau_z_lim = float(self.tau_z_lim)
-        # 控制输入是“位置设定值”而不是“实际滑块速度”。
-        # 若把 Δu 也硬绑到物理速度上限，MPC 会在姿态反转时被 2.5 mm/step 的
-        # 设定值爬坡卡死，明明看到大滚转误差却只能一点点挪 setpoint。
-        # 这里保留物理滑块速度约束给状态模型和 Gazebo 关节本体处理，同时把
-        # setpoint 的单步变化放宽到物理速度上限的 6 倍，避免重复限速。
-        self.delta_slider_lim = min(
-            self.u2_lim,
-            float(max(6.0 * self.P.slider_vel_max * self.dt, self.P.slider_vel_max * self.dt)),
-        )
+        # 输入是位置设定值；实际速度由预测状态约束和实体力伺服限制。
+        # 旧 6*v_max*dt 设定值增量界在反馈到达速度边界时可能阻止必要制动，
+        # 与实际速度硬界形成空可行集。这里仅保留命令域本身隐含的增量界：
+        # 两个 [-u2_lim, u2_lim] 内设定值之差最多为 2*u2_lim。
+        # R_delta 仍惩罚突变；实际位置/速度、命令幅值与偏航约束保持独立。
+        self.delta_slider_lim = 2.0 * self.u2_lim
 
         # 失效保护相关参数
         self.consecutive_failures = 0
         self.max_consecutive_failures = 3
         self.decay_factor = 0.95  # 控制量衰减系数
+        self.last_solver_status = 0
+        self.last_solution_accepted = False
+        self.last_constraint_violation = 0.0
+        self.qp_constraint_tolerance = 1e-4
+        self.last_predicted_output = np.full((self.Np, self.ny), np.nan)
 
         # 缓存 LPV 矩阵
         self.A_d = np.eye(self.nx)
@@ -3067,13 +3060,16 @@ class AttitudeMPC:
         self.last_refresh_reason_mask = 0
         self._x_aug0_buffer = np.zeros(self.nx, dtype=float)
         self._u_prev_stack_buffer = np.zeros(self.nu * self.Np, dtype=float)
-        self._l_vec_buffer = np.zeros(self._n_dec + self.nu * self.Np, dtype=float)
-        self._u_vec_buffer = np.zeros(self._n_dec + self.nu * self.Np, dtype=float)
+        self._n_slider_state_constraints = 4 * self.Np
+        self._l_vec_buffer = np.zeros(2 * self._n_dec + self._n_slider_state_constraints, dtype=float)
+        self._u_vec_buffer = np.zeros(2 * self._n_dec + self._n_slider_state_constraints, dtype=float)
         self._g_vec_buffer = np.zeros(self._n_dec, dtype=float)
         self._H_buffer = np.zeros((self._n_dec, self._n_dec), dtype=float)
         self._tracking_error_blocks = np.zeros((self.Np, self.ny), dtype=float)
         self._Phi_buffer = np.zeros((self.ny * self.Np, self.nx), dtype=float)
         self._Gamma_buffer = np.zeros((self.ny * self.Np, self.nu * self.Np), dtype=float)
+        self._weighted_Gamma_buffer = np.zeros_like(self._Gamma_buffer)
+        self._prediction_Q_diag = np.tile(self._Q_aug_diag, self.Np)
         self._CA_power_blocks = np.zeros((self.Np, self.ny, self.nx), dtype=float)
         self._CAB_power_blocks = np.zeros((self.Np, self.ny, self.nu), dtype=float)
         self._y_const_buffer = np.zeros(self.ny * self.Np, dtype=float)
@@ -3149,7 +3145,31 @@ class AttitudeMPC:
         I_dec = sparse.eye(n_dec, format='csc')
         L_scalar = sparse.tril(sparse.csc_matrix(np.ones((Np, Np), dtype=float)), format='csc')
         L_accum = sparse.kron(L_scalar, sparse.eye(nu, format='csc'), format='csc')
-        self._constraint_A_sparse = sparse.vstack([I_dec, L_accum], format='csc')
+        # Actual predicted [chi, chi_d, ups, ups_d], separately from the
+        # position setpoint constraints above. Retain all causal coefficients
+        # (including current zeros) so every LPV update has the same CSC pattern.
+        state_rows, state_cols = [], []
+        for column in range(n_dec):
+            for step in range(column // nu, Np):
+                state_rows.extend(range(4 * step, 4 * step + 4))
+                state_cols.extend([column] * 4)
+        state_structure = sparse.csc_matrix(
+            (np.ones(len(state_rows)), (state_rows, state_cols)),
+            shape=(self._n_slider_state_constraints, n_dec),
+        )
+        self._constraint_A_sparse = sparse.vstack([I_dec, L_accum, state_structure], format='csc')
+        self._constraint_A_sparse.sort_indices()
+        all_rows = self._constraint_A_sparse.indices
+        all_cols = np.repeat(np.arange(n_dec), np.diff(self._constraint_A_sparse.indptr))
+        self._slider_A_data_indices = np.flatnonzero(all_rows >= 2 * n_dec)
+        compact_rows = all_rows[self._slider_A_data_indices] - 2 * n_dec
+        self._slider_Gamma_rows = (compact_rows // 4) * self.ny + 6 + compact_rows % 4
+        self._slider_Gamma_cols = all_cols[self._slider_A_data_indices]
+        self._slider_output_rows = (np.arange(Np)[:, None] * self.ny + np.arange(6, 10)).ravel()
+        self._slider_state_limits = np.tile(
+            [self.u2_lim, self.slider_vel_lim, self.u2_lim, self.slider_vel_lim], Np,
+        )
+        self._constraint_A_sparse.data[self._slider_A_data_indices] = 0.0
 
     def _build_upper_triangular_hessian(self):
         upper_values = self._build_upper_triangular_hessian_data()
@@ -3174,11 +3194,12 @@ class AttitudeMPC:
 
     def _assemble_hessian_from_gamma(self) -> np.ndarray:
         H = self._H_buffer
-        H[:, :] = self.R_bar
-        q_diag = self._Q_aug_diag
-        for k in range(self.Np):
-            row = self.Gamma[k * self.ny: (k + 1) * self.ny, :]
-            H += row.T @ (q_diag[:, None] * row)
+        # Q_bar is diagonal: one BLAS multiplication is algebraically the
+        # same horizon-block sum, with fewer Python calls and allocations.
+        np.multiply(self._prediction_Q_diag[:, None], self.Gamma,
+                    out=self._weighted_Gamma_buffer)
+        np.dot(self.Gamma.T, self._weighted_Gamma_buffer, out=H)
+        H += self.R_bar
         H[:] = 0.5 * (H + H.T)
         H[self._H_diag_indices] += 1e-4
         return H
@@ -3188,10 +3209,7 @@ class AttitudeMPC:
         error_blocks[:, :] = tracking_error.reshape(self.Np, self.ny)
         error_blocks *= self._Q_aug_diag
         g_vec = self._g_vec_buffer
-        g_vec.fill(0.0)
-        for k in range(self.Np):
-            row = self.Gamma[k * self.ny: (k + 1) * self.ny, :]
-            g_vec += row.T @ error_blocks[k]
+        np.dot(self.Gamma.T, error_blocks.ravel(), out=g_vec)
         return g_vec
 
     def _ensure_solver_ready(
@@ -3213,6 +3231,10 @@ class AttitudeMPC:
                 l=l_vec,
                 u=u_vec,
                 warm_starting=True,
+                # Resolve the new physical state bounds below the 0.1 mm /
+                # 1 mm/s validation budgets, rather than OSQP's loose default.
+                eps_abs=1e-5,
+                eps_rel=1e-5,
                 verbose=False,
             )
             self._osqp_is_ready = True
@@ -3224,6 +3246,7 @@ class AttitudeMPC:
             }
             self._cached_P_upper_data = self._build_upper_triangular_hessian_data()
             update_kwargs["Px"] = self._cached_P_upper_data
+            update_kwargs["Ax"] = self._constraint_A_sparse.data
             self._osqp_prob.update(**update_kwargs)
         self.last_solver_setup_dt = time.perf_counter() - setup_start
         return self._osqp_prob
@@ -3318,6 +3341,10 @@ class AttitudeMPC:
             packed[copy_rows:, :] = src[copy_rows - 1, :]
         return packed
 
+    def _update_additional_constraints(self, x0, last_u_opt, Y0, l_vec, u_vec):
+        """Optional experiment hook; the production constraint set is unchanged."""
+        return None
+
     def compute(self, t: float, s: State6, thrust_cmd: float, ref_att_seq: np.ndarray,
                 last_u_opt: np.ndarray = None):
         """
@@ -3368,14 +3395,23 @@ class AttitudeMPC:
         # 7) 约束 A * ΔU ∈ [l, u]
         #    a) 增量限幅：I * ΔU
         #    b) 绝对限幅：L * ΔU，其中 U = 1⊗u_{-1} + LΔU
+        #    c) 实际滑块状态：S*Gamma*ΔU，其中 Y = Y0 + Gamma*ΔU
         self._u_prev_stack_buffer.reshape(Np, nu)[:, :] = last_u_opt
         u_prev_stack = self._u_prev_stack_buffer
         l_vec = self._l_vec_buffer
         u_vec = self._u_vec_buffer
         l_vec[: self._n_dec] = self._du_lb
-        l_vec[self._n_dec:] = self._u_lb - u_prev_stack
+        l_vec[self._n_dec: 2 * self._n_dec] = self._u_lb - u_prev_stack
         u_vec[: self._n_dec] = self._du_ub
-        u_vec[self._n_dec:] = self._u_ub - u_prev_stack
+        u_vec[self._n_dec: 2 * self._n_dec] = self._u_ub - u_prev_stack
+        slider_free_response = Y0[self._slider_output_rows]
+        slider_stop = 2 * self._n_dec + self._n_slider_state_constraints
+        l_vec[2 * self._n_dec:slider_stop] = -self._slider_state_limits - slider_free_response
+        u_vec[2 * self._n_dec:slider_stop] = self._slider_state_limits - slider_free_response
+        self._constraint_A_sparse.data[self._slider_A_data_indices] = self.Gamma[
+            self._slider_Gamma_rows, self._slider_Gamma_cols,
+        ]
+        self._update_additional_constraints(x0, last_u_opt, Y0, l_vec, u_vec)
         self.last_qp_build_dt = time.perf_counter() - qp_build_start
 
         # 8) 求解 OSQP
@@ -3385,14 +3421,30 @@ class AttitudeMPC:
         self.last_solver_solve_dt = time.perf_counter() - solve_start
 
         # 9) 提取首个增量并恢复绝对控制量
-        if res.info.status_val == 1 or res.info.status_val == 2:
+        self.last_solver_status = int(res.info.status_val)
+        finite_solution = res.x is not None and np.isfinite(res.x).all()
+        self.last_constraint_violation = math.inf
+        if finite_solution:
+            constrained = self._constraint_A_sparse @ res.x
+            self.last_constraint_violation = float(max(
+                0.0, np.max(l_vec - constrained), np.max(constrained - u_vec)))
+        self.last_solution_accepted = bool(
+            self.last_solver_status in (1, 2) and finite_solution
+            and self.last_constraint_violation <= self.qp_constraint_tolerance)
+        if self.last_solution_accepted:
             self.consecutive_failures = 0
+            self.last_predicted_output[:] = (
+                Y0 + np.einsum('ij,j->i', self.Gamma, res.x, optimize=False)
+            ).reshape(Np, ny)
             delta_u0 = res.x[0:nu]
             u_opt_now = last_u_opt + delta_u0
             return u_opt_now[0], u_opt_now[1], u_opt_now[2]
         else:
+            self.last_predicted_output.fill(np.nan)
             self.consecutive_failures += 1
-            print(f"[Safe] OSQP failed (status: {res.info.status}, count={self.consecutive_failures}) at t={t:.2f}")
+            print(f"[Safe] OSQP rejected (status: {res.info.status}, "
+                  f"violation={self.last_constraint_violation:.3g}, "
+                  f"count={self.consecutive_failures}) at t={t:.2f}")
 
             if self.consecutive_failures >= self.max_consecutive_failures:
                 print(f"[Emergency] Engaging hover mode: sliders to neutral")
@@ -3523,21 +3575,26 @@ class NDO_Observer:
         # ==========================================
         # 第一部分：力观测器
         # ==========================================
-        v = np.array([x.vx, x.vy, x.vz])
-        Tb_v, Tv_b = T_transformation(x)
+        v_origin = np.array([x.vx, x.vy, x.vz])
+        Tb_v, _ = T_transformation(x)
+        # The known thrust/drag/gravity acceleration is the total-COM
+        # acceleration. Convert the measured body-origin velocity to that
+        # same point, so internal moving-mass recoil is not labelled wind.
+        # Actual displacements/rates suffice; no setpoint acceleration is
+        # substituted for the force- and speed-limited physical actuators.
+        cog = 2.0 * self.P.mu * np.array([x.chi, x.ups, 0.0])
+        cog_dot = 2.0 * self.P.mu * np.array([x.chi_d, x.ups_d, 0.0])
+        omega = np.array([x.p, x.q, x.r])
+        v = v_origin + Tb_v @ (cog_dot + np.cross(omega, cog))
 
         # 1.1 计算已知加速度（推力 + 重力 + 阻力）
         F_thrust_b = np.array([0.0, 0.0, u.thrust])
         acc_thrust_inertial = (Tb_v @ F_thrust_b) / self.P.M
         acc_gravity = np.array([0.0, 0.0, -self.P.g])
 
-        # 阻力
-        v_body = Tv_b @ v
-        vx_b, vy_b, vz_b = v_body[0], v_body[1], v_body[2]
-        Fx_drag = -0.5 * self.P.rho * self.P.S_side * self.P.Cd_side * vx_b * abs(vx_b)
-        Fy_drag = -0.5 * self.P.rho * self.P.S_side * self.P.Cd_side * vy_b * abs(vy_b)
-        Fz_drag = -0.5 * self.P.rho * self.P.S_top * self.P.Cd_top * vz_b * abs(vz_b)
-        acc_drag_inertial = (Tb_v @ np.array([Fx_drag, Fy_drag, Fz_drag])) / self.P.M
+        # 与正文同一气动模型，未测风时采用零风名义值；风引起的增量由 NDO 估计。
+        aero_loads = calculate_aerodynamic_loads(x, self.P)
+        acc_drag_inertial = aero_loads.force_world / self.P.M
 
         acc_known = acc_thrust_inertial + acc_gravity + acc_drag_inertial
 
@@ -3599,7 +3656,7 @@ class NDO_Observer:
 
         # 2.2 计算已知力矩
         # 这里用当前滑块位置和总推力近似 MMC 的已知滚转/俯仰力矩，
-        # 再叠加偏航控制力矩与角速度阻尼项。
+        # 再叠加偏航控制力矩与名义气动力矩。
         mu = self.P.mu
         # 加上偏航力矩
         M_known = np.array([
@@ -3608,14 +3665,8 @@ class NDO_Observer:
             u.tau_z  # Mz（偏航力矩）
         ])
 
-        # 加上气动阻尼力矩（参考 update_6dof_model 中的 Md）
-        Md = -np.array([
-            self.P.kp * x.p,
-            self.P.kq * x.q,
-            self.P.kr * x.r
-        ])
-
-        Tau_total_known = M_known + Md
+        # 名义气动力矩包含偏移质心力臂及转动阻尼。
+        Tau_total_known = M_known + aero_loads.moment_cog_body
 
         # 2.3 计算已知角加速度
         # 刚体转动方程：J*alpha = Tau - w x Jw
@@ -3818,6 +3869,13 @@ class MMCUAVROS2Controller(Node):
             0.05,
             float(self.declare_parameter("slider_zeta_mass", self.P.zeta_mass).value),
         )
+        self.P.slider_vel_max = float(self.declare_parameter(
+            "slider_velocity_limit", self.P.slider_vel_max).value)
+        slider_command_limit = float(self.declare_parameter(
+            "slider_command_limit", 0.135).value)
+        if not (math.isfinite(self.P.slider_vel_max) and self.P.slider_vel_max > 0
+                and math.isfinite(slider_command_limit) and 0 < slider_command_limit < self.P.u2_lim):
+            raise ValueError("Invalid slider velocity/command limits")
         self.state = State6()
         self.outer = OuterPosController(self.P, dt_outer=1.0 / 25.0)
         outer_xy_kp = max(0.0, float(self.declare_parameter("outer_xy_kp", self.outer.kp_x).value))
@@ -3841,6 +3899,7 @@ class MMCUAVROS2Controller(Node):
         self.att_mpc = AttitudeMPC(
             self.P,
             dt_mpc=1.0 / 100.0,
+            slider_soft_limit=slider_command_limit,
         )
         self.pitch_axis_coordinator = AxisManeuverCoordinator(
             AxisCoordinatorConfig.for_pitch(self.P, prediction_horizon=self.att_mpc.Np, dt=self.att_mpc.dt)
@@ -3901,23 +3960,6 @@ class MMCUAVROS2Controller(Node):
                 0.0,
                 float(self.declare_parameter("ndo_compensated_attitude_limit_deg", 25.0).value),
             )
-        )
-        self.ndo_transient_attitude_boost_enabled = bool(
-            self.declare_parameter("ndo_transient_attitude_boost_enabled", False).value
-        )
-        self.ndo_transient_attitude_limit = math.radians(
-            max(
-                0.0,
-                float(self.declare_parameter("ndo_transient_attitude_limit_deg", 28.0).value),
-            )
-        )
-        self.ndo_transient_attitude_boost_duration = max(
-            0.0,
-            float(self.declare_parameter("ndo_transient_attitude_boost_duration", 4.5).value),
-        )
-        self.ndo_transient_attitude_boost_fade = max(
-            0.0,
-            float(self.declare_parameter("ndo_transient_attitude_boost_fade", 1.0).value),
         )
         self.ndo = NDO_Observer(
             self.P,
@@ -4067,6 +4109,7 @@ class MMCUAVROS2Controller(Node):
 
         # 可选的关节反馈时间戳
         self.last_joint_update_ns: Optional[int] = None
+        self.last_joint_receive_ns: Optional[int] = None
 
         # ===== 时间基准 =====
         self.start_time = 0.0 if self.use_explicit_sim_clock_for_control else self._steady_elapsed_sec()
@@ -4549,6 +4592,9 @@ class MMCUAVROS2Controller(Node):
             )
 
         # ===== 必需订阅 =====
+        self.simulation_wind_world = np.zeros(3)
+        self.simulation_wind_received = False
+        self.create_subscription(Vector3, "/mmc/wind/velocity", self.simulation_wind_cb, 10)
         self.create_subscription(ClockMsg, "/clock", self.clock_cb, 10)
         self.create_subscription(Imu, self.imu_topic, self.imu_cb, qos_profile_sensor_data)
         self.create_subscription(Odometry, self.odom_topic, self.odom_cb, qos_profile_sensor_data)
@@ -4718,6 +4764,15 @@ class MMCUAVROS2Controller(Node):
             self.imu_ready = True
             self._try_init_mission()
 
+    def simulation_wind_cb(self, msg: Vector3):
+        """仿真外力专用真值风速；不注入 MPC 或 NDO 的名义预测模型。"""
+        velocity = np.array([msg.x, msg.y, msg.z], dtype=float)
+        if not np.all(np.isfinite(velocity)):
+            return
+        with optional_lock(self):
+            self.simulation_wind_world = velocity
+            self.simulation_wind_received = True
+
     def wind_status_cb(self, msg: WindStatus):
         with optional_lock(self):
             self.wind_status_publish_ok = bool(msg.publish_ok)
@@ -4824,6 +4879,28 @@ class MMCUAVROS2Controller(Node):
             _upper_pos, upper_vel = fetch_joint("joint_rotor_upper")
             _lower_pos, lower_vel = fetch_joint("joint_rotor_lower")
 
+            # Commit a complete measured slider sample atomically. Invalid or
+            # older messages must not overwrite a recent valid physical state.
+            feedback = (g_pos, g_vel, p_pos, p_vel, b_pos, b_vel, r_pos, r_vel)
+            if not all(value is not None and math.isfinite(value) for value in feedback):
+                return
+            stamp = getattr(getattr(msg, 'header', None), 'stamp', None)
+            received_ns = self.get_clock().now().nanoseconds
+            if stamp is not None:
+                if not (stamp.sec >= 0 and 0 <= stamp.nanosec < 1000000000):
+                    return
+                feedback_ns = stamp.sec * 1000000000 + stamp.nanosec
+            else:
+                feedback_ns = received_ns
+            # /clock and joint states arrive on independent subscriptions.
+            # Reject grossly future-dated packets but retain valid samples that
+            # arrive just before their corresponding clock update.
+            if feedback_ns - received_ns >= 200_000_000:
+                return
+            last_feedback_ns = getattr(self, 'last_joint_update_ns', None)
+            if last_feedback_ns is not None and feedback_ns < last_feedback_ns:
+                return
+
             # X 轴两侧滑块：
             # 在 URDF 中的轴向均为 (-1, 0, 0)。
             # 指令映射对两个滑块都发布 -chi_cmd。
@@ -4859,19 +4936,8 @@ class MMCUAVROS2Controller(Node):
             elif r_vel is not None:
                 self.state.ups_d = r_vel
 
-            params = getattr(self, "P", P)
-            self.state.chi, self.state.chi_d = clamp_slider_state(
-                self.state.chi,
-                self.state.chi_d,
-                params.u2_lim,
-                params.slider_vel_max,
-            )
-            self.state.ups, self.state.ups_d = clamp_slider_state(
-                self.state.ups,
-                self.state.ups_d,
-                params.u2_lim,
-                params.slider_vel_max,
-            )
+            # Physical feedback must remain the measured joint state. A speed
+            # violation must not be hidden by clipping controller/log values.
 
             rotor_feedback_scale = float(getattr(self, "rotor_visual_slowdown_sim", 1.0))
             if upper_vel is not None:
@@ -4879,7 +4945,9 @@ class MMCUAVROS2Controller(Node):
             if lower_vel is not None:
                 self.lower_rotor_actual = float(lower_vel) * rotor_feedback_scale
 
-            self.last_joint_update_ns = self.get_clock().now().nanoseconds
+            if last_feedback_ns is None or feedback_ns > last_feedback_ns:
+                self.last_joint_receive_ns = received_ns
+            self.last_joint_update_ns = feedback_ns
 
     # ----------------------------
     # 任务与辅助方法
@@ -5939,7 +6007,7 @@ class MMCUAVROS2Controller(Node):
         self._last_ndo_log_row = row
 
     def _reference_attitude_limits_for_ndo(self) -> Tuple[float, float]:
-        compensated_limit = MMCUAVROS2Controller._effective_ndo_compensated_attitude_limit(self)
+        compensated_limit = max(0.0, float(getattr(self, "ndo_compensated_attitude_limit", 0.0)))
         roll_limit = max(
             float(getattr(self.outer, "roll_limit", math.radians(12.0))),
             compensated_limit,
@@ -5949,28 +6017,6 @@ class MMCUAVROS2Controller(Node):
             compensated_limit,
         )
         return roll_limit, pitch_limit
-
-    def _effective_ndo_compensated_attitude_limit(self) -> float:
-        base_limit = max(0.0, float(getattr(self, "ndo_compensated_attitude_limit", 0.0)))
-        if not bool(getattr(self, "ndo_transient_attitude_boost_enabled", False)):
-            return base_limit
-        if not bool(getattr(self, "wind_runtime_active", False)):
-            return base_limit
-
-        activation_time = float(getattr(self, "wind_activation_time", math.nan))
-        if not math.isfinite(activation_time):
-            return base_limit
-        elapsed = max(0.0, float(self._elapsed_sec()) - activation_time)
-        boost_duration = max(0.0, float(getattr(self, "ndo_transient_attitude_boost_duration", 0.0)))
-        fade_duration = max(0.0, float(getattr(self, "ndo_transient_attitude_boost_fade", 0.0)))
-        boosted_limit = max(base_limit, max(0.0, float(getattr(self, "ndo_transient_attitude_limit", base_limit))))
-
-        if elapsed <= boost_duration:
-            return boosted_limit
-        if fade_duration <= 1e-9 or elapsed >= boost_duration + fade_duration:
-            return base_limit
-        alpha = clamp((elapsed - boost_duration) / fade_duration, 0.0, 1.0)
-        return boosted_limit + alpha * (base_limit - boosted_limit)
 
     def _effective_ndo_compensation_limit(self) -> float:
         base_limit = max(0.0, float(getattr(self, "ndo_compensation_limit", 0.0)))
@@ -7658,6 +7704,9 @@ class MMCUAVROS2Controller(Node):
 
     def _sliders_centered_for_takeoff(self, now_ns: int) -> bool:
         if not self._joint_feedback_fresh():
+            if getattr(self, "actuation_backend", "") == "rotor_physics":
+                self.center_hold_start_ns = None
+                return False
             self.preflight_centering_degraded_mode = True
             if not self.preflight_centering_degraded_logged:
                 self.get_logger().warning(
@@ -7708,8 +7757,13 @@ class MMCUAVROS2Controller(Node):
         with optional_lock(self):
             if self.last_joint_update_ns is None:
                 return False
-            age_sec = (self.get_clock().now().nanoseconds - self.last_joint_update_ns) * 1e-9
-            return age_sec < 0.2
+            received_ns = getattr(self, 'last_joint_receive_ns', None)
+            # Use the older of acquisition and receipt time. A late packet
+            # remains stale; a small cross-topic clock skew has age zero at
+            # receipt. Duplicate stamps cannot refresh the receipt timestamp.
+            origin_ns = min(self.last_joint_update_ns, received_ns) if received_ns is not None else self.last_joint_update_ns
+            age_sec = (self.get_clock().now().nanoseconds - origin_ns) * 1e-9
+            return 0.0 <= age_sec < 0.2
 
     def _publish_runtime_wind_command(
         self,
@@ -7893,6 +7947,10 @@ class MMCUAVROS2Controller(Node):
         作为MPC/NDO内部一致性的状态估计器。
         """
         with optional_lock(self):
+            # A physics-backed run retains its last measured state and marks
+            # freshness in the log; never replace it with a virtual response.
+            if getattr(self, "actuation_backend", "") == "rotor_physics":
+                return
             if self._joint_feedback_fresh():
                 return
 
@@ -8096,7 +8154,9 @@ class MMCUAVROS2Controller(Node):
         ndo_log_row = self._last_ndo_log_row
 
         drag_start = time.perf_counter()
-        drag_force, damping_torque, _ = calculate_aerodynamic_forces(state_after_mpc, self.P)
+        drag_force, damping_torque = calculate_aerodynamic_wrench_at_body_origin(
+            state_after_mpc, self.P, getattr(self, "simulation_wind_world", None),
+        )
         self.last_inner_drag_dt = time.perf_counter() - drag_start
 
         # 恢复原有的脉冲补偿发布路径，并把缩放相关诊断写入黑匣子。
@@ -8247,7 +8307,22 @@ class MMCUAVROS2Controller(Node):
                 self.wind_status_detail,
                 float(self.wind_runtime_active),
                 self.wind_activation_time,
+                float(getattr(self, "simulation_wind_received", False)),
+                *getattr(self, "simulation_wind_world", np.zeros(3)),
                 *ndo_log_row,
+                float(self._joint_feedback_fresh()),
+                self.last_joint_update_ns * 1e-9 if self.last_joint_update_ns is not None else math.nan,
+                self.last_joint_receive_ns * 1e-9 if self.last_joint_receive_ns is not None else math.nan,
+                self.get_clock().now().nanoseconds * 1e-9,
+                self.att_mpc.last_solver_status,
+                float(self.att_mpc.last_solution_accepted),
+                self.att_mpc.last_constraint_violation,
+                self.att_mpc.consecutive_failures,
+                float(tau_z_cmd),
+                float(self.mixer.feasible_tau_z_bounds(thrust_cmd_current)[0]),
+                float(self.mixer.feasible_tau_z_bounds(thrust_cmd_current)[1]),
+                float(self.mixer.clamp_tau_z(thrust_cmd_current, tau_z_cmd)),
+                float(tau_z_real),
             ]
             self.flight_data_log.append(row)
         self.last_inner_log_dt = time.perf_counter() - log_start
@@ -8538,6 +8613,11 @@ def main(args=None):
         rclpy.spin(node)
     except KeyboardInterrupt:
         print("\n[Ctrl+C detected] Interrupted by user, initiating safe shutdown...")
+    except ExternalShutdownException:
+        pass
+    except RCLError:
+        if rclpy.ok():
+            raise
     finally:
         # 确保在节点销毁前将内存数据写入硬盘
         previous_sigint = signal.getsignal(signal.SIGINT)

@@ -1,0 +1,90 @@
+[
+  {
+    "sim_time_s": 0.001,
+    "relative_sim_time_s": 0.0,
+    "requested": {
+      "blue": 0.0,
+      "red": 0.0,
+      "purple": 0.0,
+      "green": 0.0
+    },
+    "hold_s": 0.5
+  },
+  {
+    "sim_time_s": 0.501,
+    "relative_sim_time_s": 0.5,
+    "requested": {
+      "blue": 0.05,
+      "red": 0.05,
+      "purple": 0.05,
+      "green": 0.05
+    },
+    "hold_s": 2.0
+  },
+  {
+    "sim_time_s": 2.501,
+    "relative_sim_time_s": 2.5,
+    "requested": {
+      "blue": 0.0,
+      "red": 0.0,
+      "purple": 0.0,
+      "green": 0.0
+    },
+    "hold_s": 2.0
+  },
+  {
+    "sim_time_s": 4.501,
+    "relative_sim_time_s": 4.5,
+    "requested": {
+      "blue": 0.135,
+      "red": 0.135,
+      "purple": 0.135,
+      "green": 0.135
+    },
+    "hold_s": 2.0
+  },
+  {
+    "sim_time_s": 6.501,
+    "relative_sim_time_s": 6.5,
+    "requested": {
+      "blue": -0.135,
+      "red": -0.135,
+      "purple": -0.135,
+      "green": -0.135
+    },
+    "hold_s": 2.0
+  },
+  {
+    "sim_time_s": 8.501,
+    "relative_sim_time_s": 8.5,
+    "requested": {
+      "blue": 0.2,
+      "red": 0.2,
+      "purple": 0.2,
+      "green": 0.2
+    },
+    "hold_s": 2.0
+  },
+  {
+    "sim_time_s": 10.501,
+    "relative_sim_time_s": 10.5,
+    "requested": {
+      "blue": -0.2,
+      "red": -0.2,
+      "purple": -0.2,
+      "green": -0.2
+    },
+    "hold_s": 2.0
+  },
+  {
+    "sim_time_s": 12.501,
+    "relative_sim_time_s": 12.5,
+    "requested": {
+      "blue": 0.0,
+      "red": 0.0,
+      "purple": 0.0,
+      "green": 0.0
+    },
+    "hold_s": 2.0
+  }
+]

@@ -1,0 +1,4 @@
+# Preserve recorded CSV bytes (including their original line endings).
+# Numeric data are inspected through the analysis tools rather than patch diffs.
+data/**/*.csv -text -diff
+*.csv.gz -text -diff

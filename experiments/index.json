@@ -1,0 +1,121 @@
+[
+  {
+    "name": "wind_pid",
+    "family": "comparison",
+    "controller": "pid",
+    "recorded_repetitions": 3,
+    "paper_section": "V.D"
+  },
+  {
+    "name": "wind_lqr",
+    "family": "comparison",
+    "controller": "lqr",
+    "recorded_repetitions": 3,
+    "paper_section": "V.D"
+  },
+  {
+    "name": "wind_cmpc",
+    "family": "comparison",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 3,
+    "paper_section": "V.D"
+  },
+  {
+    "name": "wind_cmpc_ndo",
+    "family": "comparison",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 3,
+    "paper_section": "V.D"
+  },
+  {
+    "name": "scan_nominal",
+    "family": "scan",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.C"
+  },
+  {
+    "name": "scan_mu_low",
+    "family": "scan",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.C"
+  },
+  {
+    "name": "scan_mu_high",
+    "family": "scan",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.C"
+  },
+  {
+    "name": "scan_M_low",
+    "family": "scan",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.C"
+  },
+  {
+    "name": "scan_M_high",
+    "family": "scan",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.C"
+  },
+  {
+    "name": "scan_omega10",
+    "family": "scan",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.C"
+  },
+  {
+    "name": "scan_omega30",
+    "family": "scan",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.C"
+  },
+  {
+    "name": "pressure_cmpc",
+    "family": "pressure",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.D"
+  },
+  {
+    "name": "pressure_umpc",
+    "family": "pressure",
+    "controller": "unconstrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.D"
+  },
+  {
+    "name": "efficiency_k85",
+    "family": "comparison",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.C"
+  },
+  {
+    "name": "efficiency_k75",
+    "family": "comparison",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.C"
+  },
+  {
+    "name": "efficiency_k95",
+    "family": "comparison",
+    "controller": "constrained_mpc",
+    "recorded_repetitions": 1,
+    "paper_section": "V.C"
+  },
+  {
+    "name": "coordinated_motion",
+    "family": "coordination",
+    "controller": "coordinated_mpc_ndo",
+    "recorded_repetitions": 1,
+    "paper_section": "V.B"
+  }
+]

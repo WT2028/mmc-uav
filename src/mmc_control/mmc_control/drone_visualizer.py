@@ -4,6 +4,7 @@
 无人机数据可视化脚本
 用于处理CSV格式的无人机数据并生成可视化图表（折线图）
 
+作者: AI Assistant
 版本: 2.1.0
 依赖: pandas, matplotlib
 """
@@ -129,41 +130,41 @@ class CSVVisualizer:
         except Exception as e:
             print(f"  错误: 读取文件失败 {csv_path}: {e}")
             return None
-    
+
     def analyze_dataframe(self, df: pd.DataFrame) -> Dict:
         numeric_cols = df.select_dtypes(include=['float64', 'int64', 'float32', 'int32']).columns.tolist()
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
-        
+
         return {
             'numeric_columns': numeric_cols,
             'categorical_columns': categorical_cols,
             'total_rows': len(df),
             'total_columns': len(df.columns)
         }
-    
+
     def suggest_default_columns(self, df: pd.DataFrame) -> Tuple[Optional[str], List[str]]:
         analysis = self.analyze_dataframe(df)
         numeric_cols = analysis['numeric_columns']
-        
+
         if not numeric_cols:
             return None, []
-        
+
         x_col = None
         time_keywords = ['time', 'timestamp', 'date', 'sec', 'ms', 'frame']
-        
+
         for col in numeric_cols[:5]:
             col_lower = col.lower()
             if any(keyword in col_lower for keyword in time_keywords):
                 x_col = col
                 break
-        
+
         if x_col is None and len(numeric_cols) > 0:
             x_col = numeric_cols[0]
-            
+
         y_cols = [col for col in numeric_cols if col != x_col]
-        
+
         return x_col, y_cols
-    
+
     def generate_timestamp(self) -> str:
         return datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -480,50 +481,50 @@ class CSVVisualizer:
             print(f"    错误: 生成 3D 动态轨迹图失败: {e}")
             plt.close()
             return False
-    
+
     def plot_line_chart(self, df: pd.DataFrame, x_col: str, y_cols: List[str],
                         title: str, filename: str) -> bool:
         try:
             num_y = len(y_cols)
             rows = (num_y + 2) // 3
             cols = min(3, num_y)
-            
+
             fig, axes = plt.subplots(rows, cols, figsize=(6 * cols, 5 * rows))
             if num_y == 1:
                 axes = [axes]
             else:
                 axes = axes.flatten() if rows > 1 else axes
-            
+
             colors = plt.cm.tab10.colors
-            
+
             for idx, y_col in enumerate(y_cols):
                 valid_data = df[[x_col, y_col]].dropna()
-                axes[idx].plot(valid_data[x_col], valid_data[y_col], 
+                axes[idx].plot(valid_data[x_col], valid_data[y_col],
                               label=y_col, linewidth=1.5, alpha=0.8, color=colors[idx % len(colors)])
                 axes[idx].set_xlabel(x_col, fontsize=10)
                 axes[idx].set_ylabel(y_col, fontsize=10)
                 axes[idx].set_title(f'{y_col}', fontsize=11, fontweight='bold')
                 axes[idx].legend(loc='best', fontsize=9)
                 axes[idx].grid(True, alpha=0.3)
-            
+
             for idx in range(num_y, len(axes)):
                 axes[idx].set_visible(False)
-            
+
             plt.suptitle(title, fontsize=14, fontweight='bold', y=1.02)
             plt.tight_layout()
-            
+
             save_path = self.output_dir / filename
             plt.savefig(save_path, dpi=150, bbox_inches='tight')
             plt.close()
-            
+
             print(f"    折线图已保存: {save_path}")
             return True
-            
+
         except Exception as e:
             print(f"    错误: 生成折线图失败: {e}")
             plt.close()
             return False
-    
+
     def process_csv_file(self, file_path: str | Path,
                          x_col: Optional[str] = None,
                          y_cols: Optional[List[str]] = None,
@@ -544,18 +545,18 @@ class CSVVisualizer:
         if df is None or df.empty:
             print(f"  错误: 无法加载数据或数据为空")
             return {'success': False, 'file': csv_filename, 'charts': []}
-        
+
         analysis = self.analyze_dataframe(df)
         print(f"  数值列: {len(analysis['numeric_columns'])} 个")
         print(f"  数值列名: {', '.join(analysis['numeric_columns'][:5])}")
-        
+
         if x_col is None or y_cols is None:
             suggested_x, suggested_y = self.suggest_default_columns(df)
             if x_col is None:
                 x_col = suggested_x
             if y_cols is None:
                 y_cols = suggested_y
-        
+
         timestamp = self.generate_timestamp()
         base_name = csv_path.stem
         results = {'success': False, 'charts': []}
@@ -604,9 +605,9 @@ class CSVVisualizer:
                 ):
                     results['success'] = True
                     results['charts'].append(('trajectory3d_animation', animation_filename))
-        
+
         return results
-    
+
     def process_batch(self, csv_files: List[str | Path],
                       x_col: Optional[str] = None,
                       y_cols: Optional[List[str]] = None,
@@ -623,7 +624,7 @@ class CSVVisualizer:
             'total_charts': 0,
             'details': []
         }
-        
+
         for file_path in csv_files:
             result = self.process_csv_file(
                 file_path,
@@ -636,17 +637,17 @@ class CSVVisualizer:
                 trajectory_max_frames=trajectory_max_frames,
                 trajectory_fps=trajectory_fps,
             )
-            
+
             if result['success']:
                 summary['successful'] += 1
                 summary['total_charts'] += len(result['charts'])
             else:
                 summary['failed'] += 1
-            
+
             summary['details'].append(result)
-        
+
         return summary
-    
+
     def print_summary(self, summary: Dict) -> None:
         print("\n" + "="*60)
         print("处理完成 - 结果汇总")
@@ -657,21 +658,21 @@ class CSVVisualizer:
         print(f"生成图表总数: {summary['total_charts']}")
         print(f"输出目录: {self.output_dir}")
         print("="*60)
-    
+
     def interactive_select(self, df: pd.DataFrame) -> Tuple[Optional[str], List[str]]:
         analysis = self.analyze_dataframe(df)
         numeric_cols = analysis['numeric_columns']
-        
+
         if not numeric_cols:
             print("错误: 未找到数值列")
             return None, []
-        
+
         print("\n" + "="*50)
         print("可用数值列:")
         print("="*50)
         for i, col in enumerate(numeric_cols, 1):
             print(f"  {i}. {col}")
-        
+
         x_col_idx = input("\n请选择X轴列号 (直接回车使用第一列): ").strip()
         if x_col_idx:
             try:
@@ -680,7 +681,7 @@ class CSVVisualizer:
                 x_col = numeric_cols[0]
         else:
             x_col = numeric_cols[0]
-        
+
         y_cols_input = input("请输入Y轴列号(用逗号分隔，如1,2,3)，直接回车选择所有列: ").strip()
         if y_cols_input:
             try:
@@ -689,11 +690,11 @@ class CSVVisualizer:
                 y_cols = numeric_cols[1:] if len(numeric_cols) > 1 else numeric_cols
         else:
             y_cols = [col for col in numeric_cols if col != x_col]
-        
+
         print(f"\n选择的配置:")
         print(f"  X轴: {x_col}")
         print(f"  Y轴: {', '.join(y_cols)}")
-        
+
         return x_col, y_cols
 
 
@@ -715,7 +716,7 @@ def parse_arguments(argv: Optional[Sequence[str]] = None):
   python3 -m mmc_control.drone_visualizer -f fly_data/log.csv --trajectory-3d --no-line-chart
         """
     )
-    
+
     parser.add_argument('-f', '--file', type=str, default=None,
                        help='指定要处理的CSV文件路径')
     parser.add_argument('-d', '--directory', type=str, default=str(get_default_log_dir()),
@@ -744,7 +745,7 @@ def parse_arguments(argv: Optional[Sequence[str]] = None):
                        help='3D 动态轨迹图最大帧数，超过后自动增大抽帧步长（默认: 400）')
     parser.add_argument('--trajectory-3d-fps', type=int, default=20,
                        help='3D 动态轨迹 GIF 的帧率（默认: 20）')
-    
+
     return parser.parse_args(list(argv) if argv is not None else None)
 
 
@@ -752,14 +753,14 @@ def main():
     print("="*60)
     print("无人机数据可视化工具 v2.2.0 (折线图 + 3D轨迹版)")
     print("="*60)
-    
+
     args = parse_arguments()
-    
+
     visualizer = CSVVisualizer(output_dir=args.output)
     search_dir = resolve_package_path(args.directory)
     csv_files: List[Path] = []
     used_search_dir = search_dir
-    
+
     if args.file:
         file_path = resolve_package_path(args.file)
         if file_path.exists():
@@ -789,7 +790,7 @@ def main():
             print(f"\n在目录 {used_search_dir} 中找到 {len(csv_files)} 个CSV文件，自动选择最新文件:")
             print(f"  - {latest_csv.name}")
             csv_files = [latest_csv]
-    
+
     if not csv_files:
         print(f"错误: 未找到可处理的CSV文件")
         sys.exit(1)
@@ -833,7 +834,7 @@ def main():
         df = visualizer.load_csv(csv_files[0])
         if df is not None:
             x_col, y_cols = visualizer.interactive_select(df)
-    
+
     if len(csv_files) == 1:
         result = visualizer.process_csv_file(
             csv_files[0],
@@ -867,7 +868,7 @@ def main():
             trajectory_fps=args.trajectory_3d_fps,
         )
         visualizer.print_summary(summary)
-    
+
     print("\n可视化完成！")
 
 

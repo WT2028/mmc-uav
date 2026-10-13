@@ -1,32 +1,36 @@
 import os
+import tempfile
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, SetEnvironmentVariable, TimerAction
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, OpaqueFunction, SetEnvironmentVariable, SetLaunchConfiguration, TimerAction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
 
-def generate_launch_description():
-    # Resolve controller and model resources from installed package shares.
-    control_share_dir = get_package_share_directory('mmc_control')
-    description_share_dir = get_package_share_directory('mmc_uav_description')
+def _prepare_actuator(context):
+    from mmc_control.actuator_model import prepare_actuator_model
+    output_dir = os.path.join(os.environ.get('MMC_CONTROL_ROOT', tempfile.gettempdir()), 'actuator_models')
+    os.makedirs(output_dir, exist_ok=True)
+    destination = os.path.join(tempfile.mkdtemp(prefix='launch_', dir=output_dir), 'mmc_uav.urdf')
+    source = LaunchConfiguration('uav_model_path').perform(context)
+    parameters = [float(LaunchConfiguration(name).perform(context)) for name in (
+        'slider_wn_mass', 'slider_zeta_mass', 'slider_velocity_limit', 'slider_command_limit')]
+    prepare_actuator_model(source, destination, *parameters)
+    return [SetLaunchConfiguration('uav_model_path', destination)]
 
-    urdf_path = os.path.join(description_share_dir, 'urdf', 'mmc_uav.urdf')
-    default_world_path = os.path.join(description_share_dir, 'worlds', 'wind_x3_hover_hold_world.sdf')
-    bridge_yaml_path = os.path.join(control_share_dir, 'config', 'ros_gz_bridge_mmc.yaml')
-    rviz_config_path = os.path.join(control_share_dir, 'config', 'mmc_rviz.rviz')
-    pj_layout_path = os.path.join(control_share_dir, 'config', 'mmc_pj_layout.xml')
-    description_resource_parent = os.path.dirname(description_share_dir)
-    existing_gz_resource_path = os.environ.get('GZ_SIM_RESOURCE_PATH', '')
-    gz_resource_path = os.pathsep.join(
-        path for path in (
-            description_resource_parent,
-            description_share_dir,
-            existing_gz_resource_path,
-        ) if path
-    )
+
+def generate_launch_description():
+    control_share = get_package_share_directory('mmc_control')
+    description_share = get_package_share_directory('mmc_uav_description')
+    urdf_path = os.path.join(description_share, 'urdf', 'mmc_uav.urdf')
+    default_world_path = os.path.join(description_share, 'worlds', 'wind_x3_hover_hold_world.sdf')
+    bridge_yaml_path = os.path.join(control_share, 'config', 'ros_gz_bridge_mmc.yaml')
+    rviz_config_path = os.path.join(control_share, 'config', 'mmc_rviz.rviz')
+    pj_layout_path = os.path.join(control_share, 'config', 'mmc_pj_layout.xml')
+    resource_path = os.pathsep.join(filter(None, [os.path.dirname(description_share),
+        description_share, os.environ.get('GZ_SIM_RESOURCE_PATH', '')]))
     uav_model_path = LaunchConfiguration('uav_model_path')
     world_path = LaunchConfiguration('world_sdf_path')
     enable_gui = LaunchConfiguration('enable_gui')
@@ -45,10 +49,6 @@ def generate_launch_description():
     ndo_feedback_relief_gain = LaunchConfiguration('ndo_feedback_relief_gain')
     ndo_feedback_relief_deadband_deg = LaunchConfiguration('ndo_feedback_relief_deadband_deg')
     ndo_feedback_relief_max_fraction = LaunchConfiguration('ndo_feedback_relief_max_fraction')
-    ndo_transient_attitude_boost_enabled = LaunchConfiguration('ndo_transient_attitude_boost_enabled')
-    ndo_transient_attitude_limit_deg = LaunchConfiguration('ndo_transient_attitude_limit_deg')
-    ndo_transient_attitude_boost_duration = LaunchConfiguration('ndo_transient_attitude_boost_duration')
-    ndo_transient_attitude_boost_fade = LaunchConfiguration('ndo_transient_attitude_boost_fade')
     ndo_base_gain_force = LaunchConfiguration('ndo_base_gain_force')
     ndo_base_gain_torque = LaunchConfiguration('ndo_base_gain_torque')
     ndo_lpf_alpha = LaunchConfiguration('ndo_lpf_alpha')
@@ -67,6 +67,8 @@ def generate_launch_description():
     moving_mass_kg = LaunchConfiguration('moving_mass_kg')
     slider_wn_mass = LaunchConfiguration('slider_wn_mass')
     slider_zeta_mass = LaunchConfiguration('slider_zeta_mass')
+    slider_velocity_limit = LaunchConfiguration('slider_velocity_limit')
+    slider_command_limit = LaunchConfiguration('slider_command_limit')
     rotor_max_speed_rad_s = LaunchConfiguration('rotor_max_speed_rad_s')
     rotor_motor_time_constant_up = LaunchConfiguration('rotor_motor_time_constant_up')
     rotor_motor_time_constant_down = LaunchConfiguration('rotor_motor_time_constant_down')
@@ -87,8 +89,9 @@ def generate_launch_description():
     # 2) keyboard teleop 窗口是否随 launch 自动启动
     manual_xy_enabled = False
 
-    # 1. 设置模型资源路径环境变量
-    set_env = SetEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=gz_resource_path)
+    # 1. 设置 Gazebo 资源路径与桥接后端，use the Gazebo Harmonic backend
+    set_env = SetEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=resource_path)
+    set_gz_version_env = SetEnvironmentVariable(name='GZ_VERSION', value='harmonic')
 
     # 2. 显式分离 Gazebo server / GUI：
     #    - `gz sim <world>` 会额外 fork `gz sim server`，launch 只跟踪前台包装进程，
@@ -127,10 +130,11 @@ def generate_launch_description():
         output='screen'
     )
 
-    # 默认不启动风场桥接；M4 扰动/NDO 对比通过 launch 参数显式启用。
+    # 风场桥接传递风速指令及 Gazebo 实际风速，供显式气动力模型使用。
     start_wind_bridge = Node(
         package='mmc_control',
         executable='wind_bridge_node',
+        parameters=[{'world_sdf_path': ParameterValue(world_path, value_type=str)}],
         output='screen',
         condition=IfCondition(enable_wind_bridge),
     )
@@ -156,7 +160,11 @@ def generate_launch_description():
     # 7. 启动 Python 飞控控制节点（延时 8 秒，等待传感器数据稳定）
     start_controller = Node(
         package='mmc_control',
-        executable='controller_node',
+        executable=LaunchConfiguration('controller_executable'),
+        # Small real-time MPC matrices do not benefit from BLAS worker pools;
+        # oversubscription otherwise delays feedback and constraint updates.
+        additional_env={'OPENBLAS_NUM_THREADS': '1', 'OMP_NUM_THREADS': '1',
+                        'MKL_NUM_THREADS': '1'},
         parameters=[  {
             'use_sim_time': True,
             'world_sdf_path': ParameterValue(world_path, value_type=str),
@@ -173,10 +181,6 @@ def generate_launch_description():
             'ndo_feedback_relief_gain': ParameterValue(ndo_feedback_relief_gain, value_type=float),
             'ndo_feedback_relief_deadband_deg': ParameterValue(ndo_feedback_relief_deadband_deg, value_type=float),
             'ndo_feedback_relief_max_fraction': ParameterValue(ndo_feedback_relief_max_fraction, value_type=float),
-            'ndo_transient_attitude_boost_enabled': ParameterValue(ndo_transient_attitude_boost_enabled, value_type=bool),
-            'ndo_transient_attitude_limit_deg': ParameterValue(ndo_transient_attitude_limit_deg, value_type=float),
-            'ndo_transient_attitude_boost_duration': ParameterValue(ndo_transient_attitude_boost_duration, value_type=float),
-            'ndo_transient_attitude_boost_fade': ParameterValue(ndo_transient_attitude_boost_fade, value_type=float),
             'ndo_base_gain_force': ParameterValue(ndo_base_gain_force, value_type=float),
             'ndo_base_gain_torque': ParameterValue(ndo_base_gain_torque, value_type=float),
             'ndo_lpf_alpha': ParameterValue(ndo_lpf_alpha, value_type=float),
@@ -195,6 +199,8 @@ def generate_launch_description():
             'moving_mass_kg': ParameterValue(moving_mass_kg, value_type=float),
             'slider_wn_mass': ParameterValue(slider_wn_mass, value_type=float),
             'slider_zeta_mass': ParameterValue(slider_zeta_mass, value_type=float),
+            'slider_velocity_limit': ParameterValue(slider_velocity_limit, value_type=float),
+            'slider_command_limit': ParameterValue(slider_command_limit, value_type=float),
             'actuation_backend': 'rotor_physics',
             'yaw_control_mode': 'rotor_only',
             'rotor_max_speed_rad_s': ParameterValue(rotor_max_speed_rad_s, value_type=float),
@@ -272,6 +278,7 @@ def generate_launch_description():
 
     # 按顺序和延时组装启动列表
     actions = [
+        DeclareLaunchArgument('controller_executable', default_value='controller_node'),
         DeclareLaunchArgument('uav_model_path', default_value=urdf_path),
         DeclareLaunchArgument('world_sdf_path', default_value=default_world_path),
         DeclareLaunchArgument('enable_gui', default_value='true'),
@@ -290,10 +297,6 @@ def generate_launch_description():
         DeclareLaunchArgument('ndo_feedback_relief_gain', default_value='0.7'),
         DeclareLaunchArgument('ndo_feedback_relief_deadband_deg', default_value='1.5'),
         DeclareLaunchArgument('ndo_feedback_relief_max_fraction', default_value='0.45'),
-        DeclareLaunchArgument('ndo_transient_attitude_boost_enabled', default_value='true'),
-        DeclareLaunchArgument('ndo_transient_attitude_limit_deg', default_value='28.0'),
-        DeclareLaunchArgument('ndo_transient_attitude_boost_duration', default_value='4.5'),
-        DeclareLaunchArgument('ndo_transient_attitude_boost_fade', default_value='1.0'),
         DeclareLaunchArgument('ndo_base_gain_force', default_value='15.0'),
         DeclareLaunchArgument('ndo_base_gain_torque', default_value='15.0'),
         DeclareLaunchArgument('ndo_lpf_alpha', default_value='0.4'),
@@ -312,6 +315,8 @@ def generate_launch_description():
         DeclareLaunchArgument('moving_mass_kg', default_value='0.05'),
         DeclareLaunchArgument('slider_wn_mass', default_value='20.0'),
         DeclareLaunchArgument('slider_zeta_mass', default_value='1.20'),
+        DeclareLaunchArgument('slider_velocity_limit', default_value='0.25'),
+        DeclareLaunchArgument('slider_command_limit', default_value='0.135'),
         DeclareLaunchArgument('rotor_max_speed_rad_s', default_value='450.0'),
         DeclareLaunchArgument('rotor_motor_time_constant_up', default_value='0.10'),
         DeclareLaunchArgument('rotor_motor_time_constant_down', default_value='0.16'),
@@ -328,6 +333,8 @@ def generate_launch_description():
         DeclareLaunchArgument('auto_scene_yaw_ramp_duration', default_value='6.0'),
         DeclareLaunchArgument('auto_scene_coupled_yaw_thrust_boost_ratio', default_value='0.030'),
         set_env,
+        set_gz_version_env,
+        OpaqueFunction(function=_prepare_actuator),
         start_gazebo_server,
         TimerAction(period=1.0, actions=[start_gazebo_gui]),
         TimerAction(period=3.0, actions=[spawn_model]),

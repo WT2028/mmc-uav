@@ -1,0 +1,61 @@
+{
+  "regression_pass": true,
+  "tracking": {
+    "time_range_s": [
+      0.009999999999999787,
+      70.491
+    ],
+    "rows": 6704,
+    "windows": {
+      "full_logged": {
+        "start_s": 0.009999999999999787,
+        "end_s": 70.491,
+        "position_rmse_m": 0.07274624260793335,
+        "attitude_rmse_deg": 2.186808013993444,
+        "position_peak_m": 0.39281192711718643
+      },
+      "last_20_s": {
+        "start_s": 50.494,
+        "end_s": 70.491,
+        "position_rmse_m": 0.02673123552053475,
+        "attitude_rmse_deg": 1.6389783294498803,
+        "position_peak_m": 0.06823971547204735
+      }
+    },
+    "method": "Time-weighted trapezoidal RMS of logged reference errors; yaw wrapped; controller Time is distinct from Gazebo clock. Constraint evidence uses raw_joint_states.csv.",
+    "logged_configuration": {
+      "Actuation_backend": "rotor_physics",
+      "Yaw_control_mode": "rotor_only",
+      "Auto_scene_mode": "hover_to_point_yaw_step_hold",
+      "NDO_enabled": "1.0",
+      "Body_mass_kg": "1.25",
+      "Moving_mass_kg": "0.05",
+      "Slider_wn_mass": "20.0",
+      "Slider_zeta_mass": "1.2",
+      "World_sdf_path": "experiments/models/coordinated_motion.sdf"
+    },
+    "final_position_m": [
+      2.9926953544263757,
+      2.993391781011052,
+      2.000085184346458
+    ],
+    "final_reference_m": [
+      3.0,
+      3.0,
+      2.0
+    ],
+    "final_yaw_reference_deg": 40.140504664985286,
+    "final_yaw_deg": 39.80581485479371,
+    "final_yaw_error_deg": 0.33468981019157695,
+    "joint_feedback_stale_rows": 0,
+    "joint_feedback_freshness_logged": true,
+    "qp_diagnostics_logged": true,
+    "qp_rejected_rows": 0,
+    "qp_evaluated_rows": 6704,
+    "qp_peak_constraint_violation": 1.9409601103470564e-05
+  },
+  "final_position_error_m": 0.009850566559088933,
+  "controller_csv": [
+    "mmc_flight_log.csv.gz"
+  ]
+}

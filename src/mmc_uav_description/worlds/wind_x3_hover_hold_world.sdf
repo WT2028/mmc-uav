@@ -60,6 +60,9 @@
         <hover_hold_time>0.0</hover_hold_time>
       </mmc_wind_schedule>
     </plugin>
+    <!-- Read the filtered/noisy wind velocity for the manuscript aerodynamic model.
+         WindEffects remains the wind generator; this system does not apply forces. -->
+    <plugin filename="mmc-wind-velocity-system" name="mmc::WindVelocityPublisher"/>
     <wind>
       <linear_velocity>0 0 0</linear_velocity>
     </wind>

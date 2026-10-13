@@ -1,2 +1,7 @@
-casadi
-osqp
+numpy==1.26.4
+scipy==1.13.1
+pandas==1.3.5
+matplotlib==3.8.4
+casadi==3.7.2
+osqp==1.1.1
+PyYAML==6.0.3

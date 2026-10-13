@@ -1,0 +1,173 @@
+{
+  "case": "speed_above",
+  "params": {
+    "wn": 15.723189669282576,
+    "zeta": 1.2,
+    "moving_mass": 0.05,
+    "velocity_limit": 0.25,
+    "command_limit": 0.135,
+    "mechanical_limit": 0.15,
+    "effort_limit": 2.0,
+    "load_observer_tau": 0.02
+  },
+  "acceptance_tolerances": {
+    "t90_relative_error": 0.05,
+    "trajectory_rms_10mm_m": 0.0003,
+    "peak_speed_m_s": 0.251,
+    "peak_position_m": 0.1355,
+    "steady_error_m": 0.0001,
+    "system_com_drift_m": 5e-05,
+    "synchronized_sample_gap_s": 0.002,
+    "maximum_sample_gap_s": 0.005,
+    "effort_limit_N": 2.0001,
+    "minimum_physical_body_displacement_m": 1e-05
+  },
+  "segments": [
+    {
+      "requested": {
+        "blue": 0.0,
+        "red": 0.0,
+        "purple": 0.0,
+        "green": 0.0
+      },
+      "hold_s": 0.5
+    },
+    {
+      "requested": {
+        "blue": 0.01,
+        "red": 0.01,
+        "purple": 0.01,
+        "green": 0.01
+      },
+      "hold_s": 1.5
+    },
+    {
+      "requested": {
+        "blue": 0.0,
+        "red": 0.0,
+        "purple": 0.0,
+        "green": 0.0
+      },
+      "hold_s": 1.5
+    },
+    {
+      "requested": {
+        "blue": 0.05,
+        "red": 0.05,
+        "purple": 0.05,
+        "green": 0.05
+      },
+      "hold_s": 1.5
+    },
+    {
+      "requested": {
+        "blue": 0.0,
+        "red": 0.0,
+        "purple": 0.0,
+        "green": 0.0
+      },
+      "hold_s": 1.5
+    },
+    {
+      "requested": {
+        "blue": -0.01,
+        "red": -0.01,
+        "purple": -0.01,
+        "green": -0.01
+      },
+      "hold_s": 1.5
+    },
+    {
+      "requested": {
+        "blue": 0.0,
+        "red": 0.0,
+        "purple": 0.0,
+        "green": 0.0
+      },
+      "hold_s": 1.5
+    },
+    {
+      "requested": {
+        "blue": -0.05,
+        "red": -0.05,
+        "purple": -0.05,
+        "green": -0.05
+      },
+      "hold_s": 1.5
+    },
+    {
+      "requested": {
+        "blue": 0.0,
+        "red": 0.0,
+        "purple": 0.0,
+        "green": 0.0
+      },
+      "hold_s": 1.5
+    }
+  ],
+  "geometry": {
+    "total_mass_kg": 1.4500000000000004,
+    "nominal_com_base_m": [
+      -1.135784014545535e-18,
+      -1.2225752272309264e-18,
+      1.226270043362915e-17
+    ],
+    "slider_mass_weighted_directions": {
+      "joint_slider_blue": [
+        0.0,
+        0.03448275862068965,
+        0.0
+      ],
+      "joint_slider_red": [
+        0.0,
+        0.03448275862068965,
+        0.0
+      ],
+      "joint_slider_purple": [
+        -0.03448275862068965,
+        0.0,
+        0.0
+      ],
+      "joint_slider_green": [
+        -0.03448275862068965,
+        0.0,
+        0.0
+      ]
+    },
+    "rotor_geometry": {
+      "joint_rotor_upper": {
+        "mass_ratio": 0.0689655172413793,
+        "nominal_inertial_offset_base_m": [
+          1.8255e-08,
+          6.3335e-09,
+          0.00042643
+        ],
+        "axis_base": [
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "joint_rotor_lower": {
+        "mass_ratio": 0.0689655172413793,
+        "nominal_inertial_offset_base_m": [
+          -2.0106e-08,
+          2.0768e-08,
+          -0.00042643
+        ],
+        "axis_base": [
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    }
+  },
+  "gravity": [
+    0,
+    0,
+    0
+  ],
+  "rotor_commands": false,
+  "commanded_quantity": "servo target only; actual joint states and base odometry recorded"
+}

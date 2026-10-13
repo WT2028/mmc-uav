@@ -1,0 +1,497 @@
+[
+  {
+    "profile": "wind_pid",
+    "repeat": 1,
+    "flight": "data/closed_loop/wind_pid/01/flight.csv.gz",
+    "rows": 7057,
+    "source_container_sha256": "2103b4e7a755bdf757f24bda82120ef4d13d697803f61fee2eb259467213026f",
+    "flight_sha256": "cecc87599e4f6c854ed041eb0f232d0c7ebfb526dbd570590408c1914e41aa94",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.2462974161318919,
+      "position_peak_m": 0.3342606356007656
+    }
+  },
+  {
+    "profile": "wind_pid",
+    "repeat": 2,
+    "flight": "data/closed_loop/wind_pid/02/flight.csv.gz",
+    "rows": 7060,
+    "source_container_sha256": "5f971f45a238683a010939766a554d53dcc8bcc8208c5aa2929610828a24898c",
+    "flight_sha256": "d334bead479baff5c1d41c6946d474af57267732dce2f335b5d3c7a52f0aa7b4",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.24655563763816576,
+      "position_peak_m": 0.33481997904585076
+    }
+  },
+  {
+    "profile": "wind_pid",
+    "repeat": 3,
+    "flight": "data/closed_loop/wind_pid/03/flight.csv.gz",
+    "rows": 7056,
+    "source_container_sha256": "e6edb3279508b28ba88f69e2c1e6771fb9272cb14e45e1d216abfd3e8454a0de",
+    "flight_sha256": "155e8d87e8c871d7f66bb3e7bce2e8231fbc586cc17d4a7e900b0e8f547a3d89",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.24650507885417658,
+      "position_peak_m": 0.33482229695463644
+    }
+  },
+  {
+    "profile": "wind_lqr",
+    "repeat": 1,
+    "flight": "data/closed_loop/wind_lqr/01/flight.csv.gz",
+    "rows": 7055,
+    "source_container_sha256": "4b81b884092b26015b0d58f705dbb81d38576ed743d5d7bb4bf39ee6fca926e9",
+    "flight_sha256": "6cf32c2a7c414179ac9bb8fbb83a517a92ec4f03adde8357e391d2d376ca9f44",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.2509463815083929,
+      "position_peak_m": 0.3444255536443134
+    }
+  },
+  {
+    "profile": "wind_lqr",
+    "repeat": 2,
+    "flight": "data/closed_loop/wind_lqr/02/flight.csv.gz",
+    "rows": 7053,
+    "source_container_sha256": "903bd6d30efb1fbd025c236b134502dbb4e1f05fecfaf2025a0c36405850b230",
+    "flight_sha256": "3db9f5f0ebb2c550981f873c5a45e7a26b6447f5699f187bddc377d96aa1aaa9",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.2511545806301439,
+      "position_peak_m": 0.3443661786733216
+    }
+  },
+  {
+    "profile": "wind_lqr",
+    "repeat": 3,
+    "flight": "data/closed_loop/wind_lqr/03/flight.csv.gz",
+    "rows": 7053,
+    "source_container_sha256": "d67d2da55aa03e0a7b629afe6a1824f77124ab50ea7093b9993024d765ec4ef1",
+    "flight_sha256": "e5b73e4e9b26470f8ce5626bc865162bebfe24e9164f5d08ac7f8880e4defba2",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.25106260747256803,
+      "position_peak_m": 0.3455202385545184
+    }
+  },
+  {
+    "profile": "wind_cmpc",
+    "repeat": 1,
+    "flight": "data/closed_loop/wind_cmpc/01/flight.csv.gz",
+    "rows": 7053,
+    "source_container_sha256": "20c3d99d1c828eac24bf10e97b45a88d17ca7fc81b427220f91cc9c0d2138d7d",
+    "flight_sha256": "5ffb37b4104734c981b2ae66c90f47aa7340f933ff31f1f59be63752124fc2ba",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.09954212451617084,
+      "position_peak_m": 0.26472469514059244
+    }
+  },
+  {
+    "profile": "wind_cmpc",
+    "repeat": 2,
+    "flight": "data/closed_loop/wind_cmpc/02/flight.csv.gz",
+    "rows": 7052,
+    "source_container_sha256": "ba289dc5a3b0d99faeeec5de2433c8423c004984e00c4f740a7a5fe00aa7956e",
+    "flight_sha256": "e348d68ddd4a28bbcea19c219f469979f7c95c11ec97cd340ee6fac139b70395",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.09912744251574776,
+      "position_peak_m": 0.2650506597834984
+    }
+  },
+  {
+    "profile": "wind_cmpc",
+    "repeat": 3,
+    "flight": "data/closed_loop/wind_cmpc/03/flight.csv.gz",
+    "rows": 7024,
+    "source_container_sha256": "b2653157d69f4843d7392cb8c41bc33c93db718680eb6d21d66b5416a0c60a08",
+    "flight_sha256": "19eb70636668e39de60f8a1ba2031ead37034aec9c8309821a598f4b5a7023b6",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.10039640363322139,
+      "position_peak_m": 0.2654604308167383
+    }
+  },
+  {
+    "profile": "wind_cmpc_ndo",
+    "repeat": 1,
+    "flight": "data/closed_loop/wind_cmpc_ndo/01/flight.csv.gz",
+    "rows": 7052,
+    "source_container_sha256": "574e8f0c7c1b4f477583e6e67c291800aa25e2761600e61c8b64eaf7b245ba07",
+    "flight_sha256": "1de36fdd115b82103ff4bb6a5d7c37d8b62f80f43d7a8e8799c7f380de64235b",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.07041831659277183,
+      "position_peak_m": 0.17970999163054427
+    }
+  },
+  {
+    "profile": "wind_cmpc_ndo",
+    "repeat": 2,
+    "flight": "data/closed_loop/wind_cmpc_ndo/02/flight.csv.gz",
+    "rows": 7053,
+    "source_container_sha256": "f72f5826053996bdf8317d2599f65a8f0c540694bb22cf9f9de0068a6c0d19a2",
+    "flight_sha256": "935bf51e3b49f6518227a8cef92afe3e386c89bcb22cc03b0872c050ca9d1744",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.07064435757730522,
+      "position_peak_m": 0.1784945016227029
+    }
+  },
+  {
+    "profile": "wind_cmpc_ndo",
+    "repeat": 3,
+    "flight": "data/closed_loop/wind_cmpc_ndo/03/flight.csv.gz",
+    "rows": 7052,
+    "source_container_sha256": "a5f145ac60f4d39e33b68efe8bcd507a1cdd8fdd18e0780f2bab150686f80e00",
+    "flight_sha256": "6563045896c703159ebccb21ae124dac500916e3449a0d3b26c5dbf332f366c2",
+    "window_controller_s": [
+      8.0,
+      23.0
+    ],
+    "reference_metrics": {
+      "position_rmse_m": 0.0708590145948112,
+      "position_peak_m": 0.17894962248389146
+    }
+  },
+  {
+    "profile": "scan_nominal",
+    "repeat": 1,
+    "flight": "data/closed_loop/scan_nominal/01/flight.csv.gz",
+    "rows": 7046,
+    "source_container_sha256": "f7895c79615d776bfa3e49f96243107f2615893b31fbc65e221aef8037d5704a",
+    "flight_sha256": "fb9ff5feccf167f57b2e12e6f95578de9c229cbe9cd53828f462062691b5b1cd",
+    "window_controller_s": [
+      8,
+      23
+    ],
+    "servo_rows": 296416,
+    "servo": "data/closed_loop/scan_nominal/01/servo.csv.gz",
+    "servo_sha256": "a270030e0ef5e19bbd37d7287aee5fc0ec092caace67731e2c166c780dd84800",
+    "native_clock_offset_s": 4.6000000000000005,
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.034199217648928366,
+      "position_peak_m": 0.05194047985421446,
+      "attitude_rmse_deg": 0.23074187041257394,
+      "rho_s": 0.25264505590746866,
+      "rho_Omega": 0.5280763795448196,
+      "velocity_boundary_fraction": 0.1347072924419218,
+      "force_boundary_fraction": 0.0,
+      "hold_rmse_m": 0.02650191960137104
+    }
+  },
+  {
+    "profile": "scan_mu_low",
+    "repeat": 1,
+    "flight": "data/closed_loop/scan_mu_low/01/flight.csv.gz",
+    "rows": 7050,
+    "source_container_sha256": "5ab81b9f8ba46ec0b10185747a5712bd9b039df4ed72f1aed5abdf8a0d2b8741",
+    "flight_sha256": "759af8cc84aec28b37ee62d9f575028b25408176fa4d0ebf1399e0b7b3eef150",
+    "window_controller_s": [
+      8,
+      23
+    ],
+    "servo_rows": 296292,
+    "servo": "data/closed_loop/scan_mu_low/01/servo.csv.gz",
+    "servo_sha256": "a99dabdb15942fb100d513ba38b5ddde331f784f0bf026776bfd65bed844cd34",
+    "native_clock_offset_s": 4.649999999999999,
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.03714352748760012,
+      "position_peak_m": 0.06512716336242177,
+      "attitude_rmse_deg": 0.21919844333711902,
+      "rho_s": 0.290629886242954,
+      "rho_Omega": 0.5257949137799653,
+      "velocity_boundary_fraction": 0.12944672920783684,
+      "force_boundary_fraction": 0.0,
+      "hold_rmse_m": 0.024220266640157116
+    }
+  },
+  {
+    "profile": "scan_mu_high",
+    "repeat": 1,
+    "flight": "data/closed_loop/scan_mu_high/01/flight.csv.gz",
+    "rows": 7048,
+    "source_container_sha256": "a0f62bc9efb4f84c9cd296f52a34669d84af7361a22648d825fb405ba1e430cd",
+    "flight_sha256": "302b541968a5c56559b091be72e2ff84b6a92327721f291f932629a3945d5634",
+    "window_controller_s": [
+      8,
+      23
+    ],
+    "servo_rows": 296272,
+    "servo": "data/closed_loop/scan_mu_high/01/servo.csv.gz",
+    "servo_sha256": "3fc72491f978db083814fa1e25b5d8e8f954b37e3d2b4dccd1d923431edaaf68",
+    "native_clock_offset_s": 4.629999999999999,
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.028339254215145843,
+      "position_peak_m": 0.043510867548766916,
+      "attitude_rmse_deg": 0.16830956439830663,
+      "rho_s": 0.2266556817912667,
+      "rho_Omega": 0.5284169326089628,
+      "velocity_boundary_fraction": 0.18046031386608768,
+      "force_boundary_fraction": 0.0,
+      "hold_rmse_m": 0.025918858249903594
+    }
+  },
+  {
+    "profile": "scan_M_low",
+    "repeat": 1,
+    "flight": "data/closed_loop/scan_M_low/01/flight.csv.gz",
+    "rows": 7026,
+    "source_container_sha256": "d278a2e4dd96a6a0d67fffb51473a13bcc12ecce3edc89490bf1bb4b93ba7f9b",
+    "flight_sha256": "4b8ec75a7b8ff9b25332265c3a0ee3f66ca48fb8c041ff289d36d5fce136aae4",
+    "window_controller_s": [
+      8,
+      23
+    ],
+    "servo_rows": 300916,
+    "servo": "data/closed_loop/scan_M_low/01/servo.csv.gz",
+    "servo_sha256": "7c8fa674301cd0676b518815128fd0a62ac9678ab933f00dacdde31aa1a7defb",
+    "native_clock_offset_s": 6.030000000000001,
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.03415372984067637,
+      "position_peak_m": 0.05282943054497518,
+      "attitude_rmse_deg": 0.20478396335232843,
+      "rho_s": 0.25512830098745204,
+      "rho_Omega": 0.5154525954272071,
+      "velocity_boundary_fraction": 0.13608859681293978,
+      "force_boundary_fraction": 0.0,
+      "hold_rmse_m": 0.02732960419709808
+    }
+  },
+  {
+    "profile": "scan_M_high",
+    "repeat": 1,
+    "flight": "data/closed_loop/scan_M_high/01/flight.csv.gz",
+    "rows": 7051,
+    "source_container_sha256": "f4dcea7afb8d8181b1b22cfc9d414ea3d5aa95b9a0f1f70565f8ce09cb426065",
+    "flight_sha256": "7f6669561eec108afe58a6db9094bf34f262afd480a1d84bc14d24599af25c5e",
+    "window_controller_s": [
+      8,
+      23
+    ],
+    "servo_rows": 296300,
+    "servo": "data/closed_loop/scan_M_high/01/servo.csv.gz",
+    "servo_sha256": "a98b254ea6b176638fbc8e8f27b508f69aaa5cf3966547b1203a97b33381043b",
+    "native_clock_offset_s": 4.609999999999999,
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.03344854622797996,
+      "position_peak_m": 0.04894146900432939,
+      "attitude_rmse_deg": 0.2121383345745617,
+      "rho_s": 0.25618460637576734,
+      "rho_Omega": 0.5437677904643028,
+      "velocity_boundary_fraction": 0.1040412517294507,
+      "force_boundary_fraction": 0.0,
+      "hold_rmse_m": 0.024381182698913997
+    }
+  },
+  {
+    "profile": "scan_omega10",
+    "repeat": 1,
+    "flight": "data/closed_loop/scan_omega10/01/flight.csv.gz",
+    "rows": 7052,
+    "source_container_sha256": "602ed1b81bbe899d2f9ba4f67853116290ee7d648a7ae3d899abac2ff4070369",
+    "flight_sha256": "05e2c48188ce014b9ed342db9426fbb13ac0f8859a5c76fbc829d88583b0b146",
+    "window_controller_s": [
+      8,
+      23
+    ],
+    "servo_rows": 296296,
+    "servo": "data/closed_loop/scan_omega10/01/servo.csv.gz",
+    "servo_sha256": "f9aeee91d8e6972b317a55b63c9f99916f2fea3bda33b3ca861bc82088a50707",
+    "native_clock_offset_s": 4.619999999999999,
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.03521643675729731,
+      "position_peak_m": 0.05863848338180107,
+      "attitude_rmse_deg": 0.2106241880111036,
+      "rho_s": 0.24709310437614734,
+      "rho_Omega": 0.525953375045718,
+      "velocity_boundary_fraction": 0.1489322671187774,
+      "force_boundary_fraction": 0.0,
+      "hold_rmse_m": 0.024688104997338207
+    }
+  },
+  {
+    "profile": "scan_omega30",
+    "repeat": 1,
+    "flight": "data/closed_loop/scan_omega30/01/flight.csv.gz",
+    "rows": 7044,
+    "source_container_sha256": "922a95b064636ad3731e498ba66d53dbcb13a52d9ab5d905d022d509dedd550b",
+    "flight_sha256": "76e8782e8e41a9875095dc87ad37fd12d14e97b4247f303245e7c86fb43edbec",
+    "window_controller_s": [
+      8,
+      23
+    ],
+    "servo_rows": 296280,
+    "servo": "data/closed_loop/scan_omega30/01/servo.csv.gz",
+    "servo_sha256": "9b36aca67068af4e3a7068eb2f3860390a69d39904f85f601292086032f1fc16",
+    "native_clock_offset_s": 4.609999999999999,
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.03320291783560708,
+      "position_peak_m": 0.04951342621819604,
+      "attitude_rmse_deg": 0.1881835589934443,
+      "rho_s": 0.25005714062743134,
+      "rho_Omega": 0.5264401677428105,
+      "velocity_boundary_fraction": 0.07159748362849269,
+      "force_boundary_fraction": 0.00021091986711672665,
+      "hold_rmse_m": 0.02587825247363177
+    }
+  },
+  {
+    "profile": "pressure_cmpc",
+    "repeat": 1,
+    "flight": "data/closed_loop/pressure_cmpc/01/flight.csv.gz",
+    "rows": 7015,
+    "source_container_sha256": "11bbaa99bcd9c3b5c6751a0a9ae3da0a536a14e312a9ed628d2a0c6c05e64a10",
+    "flight_sha256": "b1e22b8203cbfa29341d73ba9977dc7d7fbaaed6870df1d91a9ae1e7f679a727",
+    "window_controller_s": [
+      8.0,
+      18.0
+    ],
+    "servo_rows": 297068,
+    "servo": "data/closed_loop/pressure_cmpc/01/servo.csv.gz",
+    "servo_sha256": "8e44706f3452a9af1867669a57ab12a56eba7a7b9a9fb29c11337e3a5fe43b47",
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.13305796247593768,
+      "position_peak_m": 0.3559702851219572,
+      "native_position_near_fraction": 0.0,
+      "native_speed_near_fraction": 0.3228000000000012
+    }
+  },
+  {
+    "profile": "pressure_umpc",
+    "repeat": 1,
+    "flight": "data/closed_loop/pressure_umpc/01/flight.csv.gz",
+    "rows": 7037,
+    "source_container_sha256": "bb067c5b59b49350727f6b6b06e4664bc27cbcbba9a13282a4816676fa9c59a3",
+    "flight_sha256": "5d694678cfaecd6c1381c9753c1b9aeb8c42648a82466030de0ada583dd2fbf4",
+    "window_controller_s": [
+      8.0,
+      18.0
+    ],
+    "servo_rows": 296280,
+    "servo": "data/closed_loop/pressure_umpc/01/servo.csv.gz",
+    "servo_sha256": "71995a491cf9af0b0773292d7b8ead7c05ca3c06952eda97b91611c2396e37bf",
+    "task_success": false,
+    "reference_metrics": {
+      "position_rmse_m": 2.0517956063615257,
+      "position_peak_m": 5.077374249786374,
+      "native_position_near_fraction": 0.1078000000000002,
+      "native_speed_near_fraction": 0.8334499999999995
+    }
+  },
+  {
+    "profile": "efficiency_k85",
+    "repeat": 1,
+    "flight": "data/closed_loop/efficiency_k85/01/flight.csv.gz",
+    "rows": 7048,
+    "source_container_sha256": "a86c01c2bc5da383e9a33da4049197a05d404b24235f5a5c5fdf73e0498bd75f",
+    "flight_sha256": "386a1fa33df87fb291534b155adca4bfde273839cd94b30c89c6de1f65bcacf3",
+    "window_controller_s": [
+      8,
+      23
+    ],
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.07113514551806284,
+      "position_peak_m": 0.18073659671496287,
+      "yaw_rmse_deg": 0.06121316296845919,
+      "peak_rotor_util_450": 0.5406963560482945
+    }
+  },
+  {
+    "profile": "efficiency_k75",
+    "repeat": 1,
+    "flight": "data/closed_loop/efficiency_k75/01/flight.csv.gz",
+    "rows": 7054,
+    "source_container_sha256": "55a19b8af54a1b5dff33092485fe7097a097899cb807946ec320fa6bc0759792",
+    "flight_sha256": "d1aa5162bf3358cc335eaaf7febb727176d6b7e256cb1e36bf3b381066728b3c",
+    "window_controller_s": [
+      8,
+      23
+    ],
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.1286449852140669,
+      "position_peak_m": 0.2253201043039358,
+      "yaw_rmse_deg": 0.38609955722524475,
+      "peak_rotor_util_450": 0.584089845304864
+    }
+  },
+  {
+    "profile": "efficiency_k95",
+    "repeat": 1,
+    "flight": "data/closed_loop/efficiency_k95/01/flight.csv.gz",
+    "rows": 7046,
+    "source_container_sha256": "aca4272892d3735c0f772918437a97ddc42989e15834c100be6e7ad6dd8cdf53",
+    "flight_sha256": "ee9baad348efd3aa2a2cf72f36b33906ed4377fa17d4bc86ee8f98494de9929a",
+    "window_controller_s": [
+      8,
+      23
+    ],
+    "task_success": true,
+    "reference_metrics": {
+      "position_rmse_m": 0.08078309052263351,
+      "position_peak_m": 0.17753596293281992,
+      "yaw_rmse_deg": 0.34865832586801776,
+      "peak_rotor_util_450": 0.5189769664873708
+    }
+  },
+  {
+    "profile": "coordinated_motion",
+    "repeat": 1,
+    "flight": "data/closed_loop/coordinated_motion/01/flight.csv.gz",
+    "rows": 6704,
+    "source_container_sha256": "319f47e1f125ac2c773fc05008267285d5b5b9f5269018fcef9700d55ad8558f",
+    "flight_sha256": "2fc16022791bcf31039b166bbf237c7845b6f6ff1599da72d7d3182e6c1fb81a",
+    "window_controller_s": [
+      0,
+      70
+    ],
+    "reference_metrics": {}
+  }
+]

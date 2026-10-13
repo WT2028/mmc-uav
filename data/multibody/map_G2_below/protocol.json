@@ -1,0 +1,163 @@
+{
+  "S_m": 0.12386057334678538,
+  "T_s": 1.6,
+  "mu": 0.034482758620689655,
+  "horizon_s": 0.35,
+  "wn_rad_s": 20.0,
+  "zeta": 1.2,
+  "sx_initial_m": 0.09289543001008904,
+  "sy_initial_m": 0.12386057334678538,
+  "sx_final_m": -0.030965143336696345,
+  "sy_final_m": 0.009289543001008904,
+  "y_delay_s": 0.4,
+  "phi_initial_rad": -0.13762285927420595,
+  "theta_initial_rad": 0.09174857284947065,
+  "psi_initial_rad": 0.0,
+  "omega_initial_body_rad_s": [
+    1.3762285927420597,
+    -0.6881142963710298,
+    0.0
+  ],
+  "thrust_relative_rise": 0.10000000000000009,
+  "gravity_world_m_s2": [
+    0.0,
+    0.0,
+    -9.81
+  ],
+  "enable_nominal_aero": true,
+  "initial_base_position_world_m": [
+    0.0,
+    0.0,
+    10.0
+  ],
+  "duration_s": 2.45,
+  "scope": "Generated locked-rotor internal-mass physical probe, not actual rotor flight",
+  "rotor_joints_locked": true,
+  "force_application": "Prescribed wrench at base_link origin",
+  "initializing_only_once": true,
+  "key": "map_G2_below",
+  "model": "joint_cad_probe",
+  "world": "joint_cad_isolation",
+  "model_alignment": {
+    "mu": 0.034482758620689655,
+    "total_mass_kg": 1.4500000000000008,
+    "moving_mass_each_kg": 0.05000000000000001,
+    "base_link_mass_kg": 1.0500000000000005,
+    "fixed_rotor_mass_kg": 0.2,
+    "mass_family": "CAD_fixed_total_mass_fixed_rotors",
+    "family_rule": "Only base_link absorbs the four-slider mass change; each changed link own CoM inertia scales with its mass; rotor masses/inertias and relative geometry remain fixed.",
+    "rebase_shift_in_default_body_coordinates_m": [
+      -1.1357840145455345e-18,
+      -2.6214209315887382e-20,
+      1.2262700433629147e-17
+    ],
+    "zero_cog_after_rebase_m": [
+      2.1723902145847375e-19,
+      -2.44617273560509e-20,
+      0.0
+    ],
+    "zero_inertia_before_rebase": [
+      [
+        0.06425032814320396,
+        -2.621313902044101e-07,
+        -5.913357561139019e-11
+      ],
+      [
+        -2.621313902044101e-07,
+        0.06425032639714674,
+        2.009186059805994e-08
+      ],
+      [
+        -5.913357561139019e-11,
+        2.009186059805994e-08,
+        0.07140444996481891
+      ]
+    ],
+    "zero_inertia_after_rebase": [
+      [
+        0.06425032814320396,
+        -2.621313902044101e-07,
+        -5.913357560836413e-11
+      ],
+      [
+        -2.621313902044101e-07,
+        0.06425032639714674,
+        2.0091860598059974e-08
+      ],
+      [
+        -5.913357560836413e-11,
+        2.0091860598059974e-08,
+        0.07140444996481891
+      ]
+    ],
+    "physical_geometry_rebase_error_m": 3.469446951955192e-18,
+    "per_link_mass_inertia_changes": [
+      {
+        "link": "base_link",
+        "nominal_mass_kg": 1.05,
+        "variant_mass_kg": 1.0500000000000005,
+        "own_inertia_mass_scale": 1.0000000000000004
+      },
+      {
+        "link": "rotor_upper_link",
+        "nominal_mass_kg": 0.1,
+        "variant_mass_kg": 0.1,
+        "own_inertia_mass_scale": 1.0
+      },
+      {
+        "link": "slider_blue_link",
+        "nominal_mass_kg": 0.05,
+        "variant_mass_kg": 0.05000000000000001,
+        "own_inertia_mass_scale": 1.0000000000000002
+      },
+      {
+        "link": "slider_red_link",
+        "nominal_mass_kg": 0.05,
+        "variant_mass_kg": 0.05000000000000001,
+        "own_inertia_mass_scale": 1.0000000000000002
+      },
+      {
+        "link": "slider_purple_link",
+        "nominal_mass_kg": 0.05,
+        "variant_mass_kg": 0.05000000000000001,
+        "own_inertia_mass_scale": 1.0000000000000002
+      },
+      {
+        "link": "slider_green_link",
+        "nominal_mass_kg": 0.05,
+        "variant_mass_kg": 0.05000000000000001,
+        "own_inertia_mass_scale": 1.0000000000000002
+      },
+      {
+        "link": "rotor_lower_link",
+        "nominal_mass_kg": 0.1,
+        "variant_mass_kg": 0.1,
+        "own_inertia_mass_scale": 1.0
+      }
+    ],
+    "servo_wn_rad_s": 20.0,
+    "servo_zeta": 1.2,
+    "default_urdf_sha256": "daa5fae36ca5019737a145c6ce3a5dd1a2fa39376be20af6750c839dc9c35994",
+    "defaults_modified": false
+  },
+  "planned_initial_joints": {
+    "joint_slider_green": -0.09289543001008904,
+    "joint_slider_purple": -0.09289543001008904,
+    "joint_slider_blue": 0.12386057334678538,
+    "joint_slider_red": 0.12386057334678538
+  },
+  "raw_data_policy": "All joint positions/velocities, odometry, applied servo forces and prescribed body wrench are measured/published physical telemetry; initialization reset explicitly marked.",
+  "frame_convention": "raw_physical_body.csv uses direct Physics world linear velocity, body angular velocity and body-origin pose; raw_odometry.csv is auxiliary finite-difference odometry with startup artifacts.",
+  "interval_convention": "PostUpdate state is stamped at the physical interval end. PreUpdate wrench with stamp t drives the interval (t-0.001,t].",
+  "replay_policy": "Condition full/omission models on first post-initialization measured state and all actual joint/input histories. Locked rotors are an explicit test isolation, not production semantics.",
+  "defaults_modified": false,
+  "physical_link_names": [
+    "base_link",
+    "rotor_upper_link",
+    "slider_blue_link",
+    "slider_red_link",
+    "slider_purple_link",
+    "slider_green_link",
+    "rotor_lower_link"
+  ]
+}
