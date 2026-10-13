@@ -56,7 +56,7 @@ library versions; the provided records and metrics give a fixed reference.
 
 ## Runtime
 
-A headless run needs no display. `--gui` or the default demonstration requires a
+A headless run needs no display. The paper runner with `--gui` requires a
 working display/OpenGL setup. Gazebo plugins are found through the environment
 hooks installed by `mmc_gazebo_systems`.
 

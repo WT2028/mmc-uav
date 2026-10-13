@@ -16,7 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--multibody', action='store_true', help='Replay the thirteen measured 0.35 s tests')
     parser.add_argument('--map', action='store_true', help='Calculate the specified S/T map grid')
-    parser.add_argument('--grid', type=int, default=21)
+    parser.add_argument('--grid', type=int, help='Optional square grid; default is the paper 16 x 13 grid')
     parser.add_argument('--output', type=Path, default=ROOT/'results/mechanisms')
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
@@ -55,16 +55,28 @@ def main():
         if not result['all_passed']:
             raise SystemExit('A multibody error budget was exceeded')
     if args.map:
-        if args.grid < 2:
+        if args.grid is not None and args.grid < 2:
             parser.error('--grid must be at least 2')
+        amplitudes = np.linspace(0., .135, args.grid or 16)
+        durations = np.geomspace(.05, 1.6, args.grid or 13)
+        (args.output/'coupling_map_protocol.json').write_text(json.dumps({
+            'amplitudes_m': amplitudes.tolist(), 'transition_times_s': durations.tolist(),
+            'horizon_s': coupling.HORIZON, 'position_budget_m': coupling.DP,
+            'attitude_budget_deg': math.degrees(coupling.DA),
+            'paper_grid': args.grid is None}, indent=2) + '\n')
         rows=[]
-        for s in np.linspace(.001,.135,args.grid):
-            for duration in np.geomspace(.03,.6,args.grid):
+        for s in amplitudes:
+            for duration in durations:
                 case=coupling.family_case(float(s),float(duration))
                 rows.append(coupling.summarize(case,coupling.simulate(case),'cad',.001))
         with (args.output/'coupling_map.csv').open('w',newline='') as stream:
             writer=csv.DictWriter(stream,fieldnames=list(rows[0]))
             writer.writeheader();writer.writerows(rows)
+        summary = {'points': len(rows), 'weak_count': sum(r['weak'] for r in rows),
+                   'significant_counts': {name: sum(r[name+'_J'] > 1 for r in rows)
+                                          for name in ('G1','G2','G3','G4')},
+                   'resource_feasible_count': sum(r['resource_feasible'] for r in rows)}
+        (args.output/'coupling_map_summary.json').write_text(json.dumps(summary, indent=2)+'\n')
     print(args.output)
 
 

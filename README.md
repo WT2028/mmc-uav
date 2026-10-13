@@ -22,11 +22,11 @@ export GZ_VERSION=harmonic
 export CMAKE_BUILD_PARALLEL_LEVEL=2
 colcon build --executor sequential --cmake-args -DBUILD_TESTING=OFF
 source install/setup.bash
-ros2 launch mmc_control mmc_launch.py
+python3 scripts/run_experiment.py wind_cmpc_ndo --gui
 ```
 
-The default GUI demonstration performs an A→B transfer with 3 m/s wind and NDO
-compensation. For headless operation, add `enable_gui:=false`. The repository
+This runs the paper's six-second A→B transfer under 5 m/s crosswind with CMPC
+and NDO compensation. Omit `--gui` for headless operation. The repository
 contains the Harmonic-compatible bridge and the two custom Gazebo plugins; build
 all six packages together.
 
@@ -73,7 +73,7 @@ full-precision records, checksums and metric definitions.
 | `experiments` | Declared configurations and per-experiment physical models |
 | `analysis` | Design criteria, coupling calculations, multibody replay and metrics |
 | `data` | Numeric records used by the analysis |
-| `docs`, `videos` | Instructions, model views and demonstration recordings |
+| `docs`, `videos` | Instructions, model views and recorded simulation videos |
 
 ## MMC UAV model
 
@@ -81,55 +81,40 @@ full-precision records, checksums and metric definitions.
   <img src="docs/media/model/mmc_uav_cad_view.png" alt="MMC UAV CAD model view" width="720">
 </p>
 
-## Demo videos
+## Simulation videos
 
-These videos illustrate the platform and controller. Their demonstration settings
-are separate from the paper experiment profiles; the controller benchmark uses
-5 m/s wind. Use the profiles and numeric records below for quantitative comparisons.
+The videos replay the recorded simulations used in the paper, using the model's
+CAD meshes and Gazebo Harmonic's rendering engine. A tracking camera shows the
+moving masses and attitude; the XY inset shows the full motion relative to the
+target. Closed-loop videos include takeoff, maneuver and holding through 70 s.
+The wind examples use recorded run 1; all three runs remain in the numerical
+comparison.
 
-The GIFs below are converted from the full original video frame and full video
-duration without manual cropping or resizing. Click any GIF to open the
-corresponding MP4 file in the repository.
+| Paper experiment | Full videos |
+|---|---|
+| V.A — Isolated positioning | [Single mass, paired masses, dual-axis motion and constraints](videos/isolated_actuators.mp4) |
+| V.A — Multibody consistency | [All thirteen recorded tests](videos/multibody_checks.mp4) |
+| V.B — Translation and yaw | [4 s transfer with 40° yaw](videos/coordinated_motion.mp4) |
+| V.C — Mass ratio, fixed total mass | [Low](videos/scan_mu_low.mp4) · [Nominal](videos/scan_nominal.mp4) · [High](videos/scan_mu_high.mp4) |
+| V.C — Total mass, fixed mass ratio | [1.39 kg](videos/scan_M_low.mp4) · [1.45 kg](videos/scan_nominal.mp4) · [1.55 kg](videos/scan_M_high.mp4) |
+| V.C — Actuator bandwidth | [10 rad/s](videos/scan_omega10.mp4) · [20 rad/s](videos/scan_nominal.mp4) · [30 rad/s](videos/scan_omega30.mp4) |
+| V.C — Rotor efficiency | [0.75](videos/efficiency_k75.mp4) · [0.85](videos/efficiency_k85.mp4) · [0.95](videos/efficiency_k95.mp4) |
+| V.D — 5 m/s crosswind | [PID](videos/wind_pid.mp4) · [LQR](videos/wind_lqr.mp4) · [CMPC](videos/wind_cmpc.mp4) · [CMPC + NDO](videos/wind_cmpc_ndo.mp4) |
+| V.D — Actuator-demanding transfer | [CMPC](videos/pressure_cmpc.mp4) · [UMPC](videos/pressure_umpc.mp4) |
 
-### Nominal transfer demonstration
+### Recorded motion previews
 
-<p align="center">
-  <a href="videos/experiment_a_ab_hold.mp4">
-    <img src="docs/media/previews/experiment_a_preview.gif" alt="Experiment A preview">
-  </a>
-</p>
+Click a preview to open the complete MP4. Preview excerpts retain the indicated
+playback speed. The [video guide](videos/README.md) provides source records,
+chapter times and commands for rendering the videos.
 
-<p align="center">
-  Full video: <a href="videos/experiment_a_ab_hold.mp4">experiment_a_ab_hold.mp4</a>
-</p>
-
-### Coordinated translation and yaw demonstration
-
-<p align="center">
-  <a href="videos/experiment_b_ab_yaw_step.mp4">
-    <img src="docs/media/previews/experiment_b_preview.gif" alt="Experiment B preview">
-  </a>
-</p>
-
-<p align="center">
-  Full video: <a href="videos/experiment_b_ab_yaw_step.mp4">experiment_b_ab_yaw_step.mp4</a>
-</p>
-
-### 3 m/s wind demonstration with NDO
-
-<p align="center">
-  <a href="videos/experiment_d_wind_ndo_on.mp4">
-    <img src="docs/media/previews/experiment_d_preview.gif" alt="Experiment D preview">
-  </a>
-</p>
-
-<p align="center">
-  Full video: <a href="videos/experiment_d_wind_ndo_on.mp4">experiment_d_wind_ndo_on.mp4</a>
-</p>
-
-The recorded MP4 files are stored under [`videos/`](videos/), and additional
-scenario notes live in [`docs/experiments/README.md`](docs/experiments/README.md).
-
+| Translation and yaw | Crosswind with CMPC + NDO |
+|---|---|
+| [![Translation and yaw](docs/media/previews/coordinated_motion.gif)](videos/coordinated_motion.mp4) | [![CMPC and NDO](docs/media/previews/wind_cmpc_ndo.gif)](videos/wind_cmpc_ndo.mp4) |
+| **Actuator-demanding CMPC** | **Actuator-demanding UMPC** |
+| [![Constrained MPC](docs/media/previews/pressure_cmpc.gif)](videos/pressure_cmpc.mp4) | [![Unconstrained MPC](docs/media/previews/pressure_umpc.gif)](videos/pressure_umpc.mp4) |
+| **Isolated moving masses** | **Multibody motion** |
+| [![Actuator positioning](docs/media/previews/isolated_actuators.gif)](videos/isolated_actuators.mp4) | [![Multibody tests](docs/media/previews/multibody_checks.gif)](videos/multibody_checks.mp4) |
 
 ## License
 

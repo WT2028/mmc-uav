@@ -2328,9 +2328,7 @@ class OuterPosController:
         self.x_track_int_decay = 0.998
         self.y_track_int_decay = self.x_track_int_decay
         # 水平抗扰控制权限应由姿态安全包络决定，而不是由轨迹规划的
-        # 名义加速度限制决定。旧值 0.55 m/s^2 会把无 NDO 对照组限制在
-        # 约 3--5° 小俯仰，导致强风下不是“控制效果较差”，而是持续平移跑飞。
-        # 这里保留 5% 余量，避免外环长期贴满姿态硬限。
+        # 名义加速度限制决定。保留 5% 余量，避免外环长期贴满姿态硬限。
         self.horizontal_accel_limit_margin = 0.95
         self.ax_cmd_limit = self._attitude_limited_horizontal_accel_limit(self.pitch_limit)
         self.ay_cmd_limit = self._attitude_limited_horizontal_accel_limit(self.roll_limit)
@@ -2640,7 +2638,7 @@ class OuterPosController:
 
         # 滚转角
         # 关键符号修正：
-        # 之前使用的是 (B*cos - A*sin)。
+        # 符号由机体系到世界系的旋转约定确定。
         # 在当前物理模型和 ENU 坐标定义下，正滚转角会产生负 Y 加速度。
         # 因此如果希望获得正 Y 加速度（B > 0），就需要负滚转角，
         # 所以这里要写成 - (B*cos - A*sin)。
@@ -3831,9 +3829,8 @@ class NDO_Observer:
 class MMCUAVROS2Controller(Node):
     """
     [ROS2集成层]
-    保持原有算法模块不变（外环PID、姿态MPC、NDO、混控器），
-    （涉及规划器和动力学数学），并且仅用新的模拟驱动器替换了旧的RK4模拟驱动器
-    ROS 2订阅 + 双速率定时器 + Gazebo主题发布。
+    外环位置控制、姿态 MPC、NDO 和执行器分配的 ROS 2 接口。
+    通过传感器订阅、双速率定时器和 Gazebo 指令发布执行闭环控制。
     """
 
     def __init__(self):
@@ -5511,9 +5508,8 @@ class MMCUAVROS2Controller(Node):
     ):
         scene_mode = str(getattr(self, "auto_scene_mode", "hover_only")).strip().lower()
         if not MMCUAVROS2Controller._is_auto_scene_figure_eight_mode(scene_mode):
-            # 历史字段名仍叫 Adaptive_phase_active，但在第5章新口径下也承担
-            # “有效验证窗口”标记：排除起飞和进入场景前的悬停等待段，使
-            # 单点保持、偏航阶跃和纯悬停风扰日志都能被同一统计脚本追溯。
+            # 非八字轨迹场景中，此标记表示已完成起飞和初始悬停；
+            # 具体统计窗口由各实验的 protocol 单独定义。
             effective_start_time = max(
                 float(getattr(self, "auto_scene_takeoff_transition_time", 5.0)),
                 1e-6,
@@ -6406,10 +6402,10 @@ class MMCUAVROS2Controller(Node):
                 )
 
             # NDO 补偿必须在 AxisManeuverCoordinator 之前进入 raw 姿态参考。
-            # 旧实现是在最终序列末端只给 phi/theta 加补偿，这会让 MPC 同时看到：
+            # 若仅在序列末端给 phi/theta 加补偿，MPC 会同时看到：
             #   1) 已补偿后的强扰动姿态目标；
             #   2) 仍按未补偿外环姿态生成的滑块参考/速度参考。
-            # 3 m/s 横风日志中已出现 inner pitch 约 -15°、但 chi_ref 仍为正的
+            # 姿态参考与质量位移参考必须保持一致，避免产生
             # 矛盾信号，导致 NDO 角度补偿没有被滑块通道充分执行。
             # 因此正常自动场景先求 NDO 姿态偏置，再由 coordinator 统一生成
             # “姿态角 + 姿态角速度 + 滑块参考”的一致预测序列。
@@ -7396,7 +7392,7 @@ class MMCUAVROS2Controller(Node):
             if use_scene_accel_limit:
                 # auto_scene_horizontal_accel_limit 是轨迹规划/名义机动的加速度预算，
                 # 不能反向削弱外环 PID 的抗风扰控制权限。否则无 NDO 对照组在
-                # 3 m/s 横风下会被限制在约 5° 俯仰并稳定平移跑飞，失去对照意义。
+                # 否则会限制抗扰所需的姿态控制权限。
                 self.outer.ax_cmd_limit = max(outer_ax_limit, requested_scene_accel_limit)
                 self.outer.ay_cmd_limit = max(outer_ay_limit, requested_scene_accel_limit)
             if manual_xy_enabled:
@@ -8402,9 +8398,8 @@ class MMCUAVROS2Controller(Node):
             damping_torque,
         )
 
-        # Gazebo Harmonic 每 1 ms 会清空一次 ApplyLinkWrench，
-        # 因此当前先恢复“按实际发布周期补偿脉冲面积”的旧基线，
-        # 同时把缩放量记录到黑匣子里用于下一轮定位。
+        # ApplyLinkWrench 的单步载荷按实际发布间隔缩放以保持冲量，
+        # 同时记录实际间隔和缩放系数供载荷核查。
         self.wrench_dt_for_scale, scale = update_wrench_scale(
             dt_actual=dt_actual,
             prev_dt_for_scale=self.wrench_dt_for_scale,

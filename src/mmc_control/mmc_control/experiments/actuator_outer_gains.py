@@ -15,7 +15,7 @@ import math
 from pathlib import Path
 
 
-PRODUCTION_SHA256 = '266c2773f4eeb2eb790f3b0ec1dacc00b6c248236c5e76f04e7a7b6b96654c10'
+PRODUCTION_SHA256 = 'c3b7204959b0f77568dc83d54f7cf157eb1df3d294ed88dc281188d4a5c188a0'
 SETTING = 'horizontal_position_proportional_gain'
 ORIGINAL_GAIN = 2.2
 ATTRIBUTE_MAPPING = {SETTING: ['kp_x', 'kp_y']}

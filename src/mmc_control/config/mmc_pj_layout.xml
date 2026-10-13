@@ -6,21 +6,21 @@
     <DockSplitter sizes="0.333089;0.333821;0.333089" count="3" orientation="-">
      <DockArea name="...">
       <plot flip_x="false" flip_y="false" mode="TimeSeries" line_width="1.0">
-       <range bottom="179.999997" top="179.999999" left="5848.988821" right="5853.950336"/>
+       <range bottom="-25" top="25" left="0" right="75"/>
        <limitY/>
        <curve name="/model/mmc_uav/euler_degrees/x" color="#d62728"/>
       </plot>
      </DockArea>
      <DockArea name="...">
       <plot flip_x="false" flip_y="false" mode="TimeSeries" line_width="1.0">
-       <range bottom="-0.000002" top="-0.000001" left="5848.988821" right="5853.950336"/>
+       <range bottom="-25" top="25" left="0" right="75"/>
        <limitY/>
        <curve name="/model/mmc_uav/euler_degrees/y" color="#1ac938"/>
       </plot>
      </DockArea>
      <DockArea name="...">
       <plot flip_x="false" flip_y="false" mode="TimeSeries" line_width="1.0">
-       <range bottom="-133.195096" top="-133.195093" left="5848.988821" right="5853.950336"/>
+       <range bottom="-180" top="180" left="0" right="75"/>
        <limitY/>
        <curve name="/model/mmc_uav/euler_degrees/z" color="#ff7f0e"/>
       </plot>
@@ -33,21 +33,21 @@
     <DockSplitter sizes="0.333089;0.333821;0.333089" count="3" orientation="-">
      <DockArea name="...">
       <plot flip_x="false" flip_y="false" mode="TimeSeries" line_width="1.0">
-       <range bottom="-0.167684" top="0.032316" left="5848.961257" right="5853.952597"/>
+       <range bottom="-1" top="5" left="0" right="75"/>
        <limitY/>
        <curve name="/model/mmc_uav/odometry/pose/pose/position/x" color="#f14cc1"/>
       </plot>
      </DockArea>
      <DockArea name="...">
       <plot flip_x="false" flip_y="false" mode="TimeSeries" line_width="1.0">
-       <range bottom="-1.050192" top="-0.850192" left="5848.961257" right="5853.952597"/>
+       <range bottom="-1" top="5" left="0" right="75"/>
        <limitY/>
        <curve name="/model/mmc_uav/odometry/pose/pose/position/y" color="#9467bd"/>
       </plot>
      </DockArea>
      <DockArea name="...">
       <plot flip_x="false" flip_y="false" mode="TimeSeries" line_width="1.0">
-       <range bottom="-0.020000" top="0.180000" left="5848.961257" right="5853.952597"/>
+       <range bottom="-1" top="5" left="0" right="75"/>
        <limitY/>
        <curve name="/model/mmc_uav/odometry/pose/pose/position/z" color="#1f77b4"/>
       </plot>

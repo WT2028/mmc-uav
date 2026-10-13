@@ -101,14 +101,17 @@ model evaluates its own state-dependent aerodynamic loads thereafter.
 
 ```bash
 python3 -m analysis.mechanisms
-python3 -m analysis.mechanisms --map --grid 21
+python3 -m analysis.mechanisms --map
 ```
 
 The first command evaluates the prescribed positioning/attitude requirements and
 force/speed-limited responses. The second samples the declared amplitude/time
 family using the full model and explicit coupling-term omissions. Its position
 and attitude budgets are 2 mm and 0.2° over 0.35 s. `--grid` changes sampling
-density; the individual equations and integrator remain unchanged.
+density; the individual equations and integrator remain unchanged. The default
+paper grid has 16 amplitudes from 0 to 0.135 m and 13 logarithmically spaced
+transition times from 0.05 to 1.6 s. `--grid N` optionally uses N points on each
+axis over the same ranges. The output includes the complete sampling protocol.
 
 The coordinated-flight resource metrics and fifteen local coupling windows can
 be recomputed from the independent sensor histories:

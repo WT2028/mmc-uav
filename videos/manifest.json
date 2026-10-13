@@ -1,0 +1,1066 @@
+{
+  "format_version": 1,
+  "kind": "Recorded simulation playback",
+  "renderer": "Gazebo Rendering 8 / Ogre2",
+  "closed_loop_selection": "All 17 profiles, recorded repetition 1; complete controller history through 70 s",
+  "videos": [
+    {
+      "file": "wind_pid.mp4",
+      "sha256": "8fc45101d9e161a96696ac64adcbd50a24c50451196b0af59ab6c40f894fc263",
+      "record": {
+        "name": "wind_pid",
+        "title": "Crosswind | PID",
+        "subtitle": "5 m/s wind | 6 s transfer | NDO off",
+        "section": "V.D",
+        "speed": 1.0,
+        "rail_basis": "Measured pair displacements (X joint signs follow the URDF)",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/wind_pid/01/flight.csv.gz": "cecc87599e4f6c854ed041eb0f232d0c7ebfb526dbd570590408c1914e41aa94",
+          "experiments/models/wind_pid.urdf": "9bde1b508d470fcae5521ae9c72789773681ebc90be399db49c61bd3f9f3879d"
+        },
+        "video_sha256": "8fc45101d9e161a96696ac64adcbd50a24c50451196b0af59ab6c40f894fc263"
+      }
+    },
+    {
+      "file": "wind_lqr.mp4",
+      "sha256": "7181e9de5c467236ed00c22bb175ffaacf4ea9916cf70cc4bdad79c04f6937e6",
+      "record": {
+        "name": "wind_lqr",
+        "title": "Crosswind | LQR",
+        "subtitle": "5 m/s wind | 6 s transfer | NDO off",
+        "section": "V.D",
+        "speed": 1.0,
+        "rail_basis": "Measured pair displacements (X joint signs follow the URDF)",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/wind_lqr/01/flight.csv.gz": "6cf32c2a7c414179ac9bb8fbb83a517a92ec4f03adde8357e391d2d376ca9f44",
+          "experiments/models/wind_lqr.urdf": "9bde1b508d470fcae5521ae9c72789773681ebc90be399db49c61bd3f9f3879d"
+        },
+        "video_sha256": "7181e9de5c467236ed00c22bb175ffaacf4ea9916cf70cc4bdad79c04f6937e6"
+      }
+    },
+    {
+      "file": "wind_cmpc.mp4",
+      "sha256": "bb0a84293e8e01b397a453a5e63090254fc2021196024b8f20541875b3a69b02",
+      "record": {
+        "name": "wind_cmpc",
+        "title": "Crosswind | CMPC",
+        "subtitle": "5 m/s wind | 6 s transfer | NDO off",
+        "section": "V.D",
+        "speed": 1.0,
+        "rail_basis": "Measured pair displacements (X joint signs follow the URDF)",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/wind_cmpc/01/flight.csv.gz": "5ffb37b4104734c981b2ae66c90f47aa7340f933ff31f1f59be63752124fc2ba",
+          "experiments/models/wind_cmpc.urdf": "9bde1b508d470fcae5521ae9c72789773681ebc90be399db49c61bd3f9f3879d"
+        },
+        "video_sha256": "bb0a84293e8e01b397a453a5e63090254fc2021196024b8f20541875b3a69b02"
+      }
+    },
+    {
+      "file": "wind_cmpc_ndo.mp4",
+      "sha256": "2e2b227bc843a646a464d743ca61c94d849170bd42744736135213d2c9b55040",
+      "record": {
+        "name": "wind_cmpc_ndo",
+        "title": "Crosswind | CMPC + NDO",
+        "subtitle": "5 m/s wind | 6 s transfer",
+        "section": "V.D",
+        "speed": 1.0,
+        "rail_basis": "Measured pair displacements (X joint signs follow the URDF)",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/wind_cmpc_ndo/01/flight.csv.gz": "1de36fdd115b82103ff4bb6a5d7c37d8b62f80f43d7a8e8799c7f380de64235b",
+          "experiments/models/wind_cmpc_ndo.urdf": "9bde1b508d470fcae5521ae9c72789773681ebc90be399db49c61bd3f9f3879d"
+        },
+        "video_sha256": "2e2b227bc843a646a464d743ca61c94d849170bd42744736135213d2c9b55040"
+      }
+    },
+    {
+      "file": "scan_nominal.mp4",
+      "sha256": "59bbfefa2ca58078af3145cb0fd9c3a17af37fb9fc93aa961253801475d46fcc",
+      "record": {
+        "name": "scan_nominal",
+        "title": "Nominal mass and bandwidth",
+        "subtitle": "M = 1.45 kg | m = 0.05 kg | 20 rad/s",
+        "section": "V.C",
+        "speed": 1.0,
+        "rail_basis": "Four independent recorded rail positions",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/scan_nominal/01/flight.csv.gz": "fb9ff5feccf167f57b2e12e6f95578de9c229cbe9cd53828f462062691b5b1cd",
+          "experiments/models/scan_nominal.urdf": "967c921ee711a3de2ee27e66e1d207c6d177101469bd4605b3efa34b32b8d84c",
+          "data/closed_loop/scan_nominal/01/servo.csv.gz": "a270030e0ef5e19bbd37d7287aee5fc0ec092caace67731e2c166c780dd84800"
+        },
+        "video_sha256": "59bbfefa2ca58078af3145cb0fd9c3a17af37fb9fc93aa961253801475d46fcc"
+      }
+    },
+    {
+      "file": "scan_mu_low.mp4",
+      "sha256": "34f6e10b6e5337b62641b9f9d836e2fefaedb78d4c362dc17c320f2234352db6",
+      "record": {
+        "name": "scan_mu_low",
+        "title": "Mass ratio | low",
+        "subtitle": "Fixed total mass | mu = 0.0252 | NDO off",
+        "section": "V.C",
+        "speed": 1.0,
+        "rail_basis": "Four independent recorded rail positions",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/scan_mu_low/01/flight.csv.gz": "759af8cc84aec28b37ee62d9f575028b25408176fa4d0ebf1399e0b7b3eef150",
+          "experiments/models/scan_mu_low.urdf": "c1f6c75cb688b1c6dfc09bd26a5b926486e5f4d8fb7b059f11135b69ca78c0de",
+          "data/closed_loop/scan_mu_low/01/servo.csv.gz": "a99dabdb15942fb100d513ba38b5ddde331f784f0bf026776bfd65bed844cd34"
+        },
+        "video_sha256": "34f6e10b6e5337b62641b9f9d836e2fefaedb78d4c362dc17c320f2234352db6"
+      }
+    },
+    {
+      "file": "scan_mu_high.mp4",
+      "sha256": "0feec459e9301a3e570265f8a49260820d4f93e0576b45c0616e3f7314f7801b",
+      "record": {
+        "name": "scan_mu_high",
+        "title": "Mass ratio | high",
+        "subtitle": "Fixed total mass | mu = 0.0484 | NDO off",
+        "section": "V.C",
+        "speed": 1.0,
+        "rail_basis": "Four independent recorded rail positions",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/scan_mu_high/01/flight.csv.gz": "302b541968a5c56559b091be72e2ff84b6a92327721f291f932629a3945d5634",
+          "experiments/models/scan_mu_high.urdf": "99cfe1308a56112e6a90baa8a6620de8a7d48509ee8976753e88f7f374f0fe6b",
+          "data/closed_loop/scan_mu_high/01/servo.csv.gz": "3fc72491f978db083814fa1e25b5d8e8f954b37e3d2b4dccd1d923431edaaf68"
+        },
+        "video_sha256": "0feec459e9301a3e570265f8a49260820d4f93e0576b45c0616e3f7314f7801b"
+      }
+    },
+    {
+      "file": "scan_M_low.mp4",
+      "sha256": "e5e9fc3e246d1ff1480e7a9b364a05652aedbdaa7c65742d6df86f5f395bb569",
+      "record": {
+        "name": "scan_M_low",
+        "title": "Total mass | low",
+        "subtitle": "Fixed mass ratio | M = 1.39 kg | NDO off",
+        "section": "V.C",
+        "speed": 1.0,
+        "rail_basis": "Four independent recorded rail positions",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/scan_M_low/01/flight.csv.gz": "4b8ec75a7b8ff9b25332265c3a0ee3f66ca48fb8c041ff289d36d5fce136aae4",
+          "experiments/models/scan_M_low.urdf": "a19fab43a1ed1dc70c700689bbadb21eff38afd35fc3c76050610ccf695d1ee7",
+          "data/closed_loop/scan_M_low/01/servo.csv.gz": "7c8fa674301cd0676b518815128fd0a62ac9678ab933f00dacdde31aa1a7defb"
+        },
+        "video_sha256": "e5e9fc3e246d1ff1480e7a9b364a05652aedbdaa7c65742d6df86f5f395bb569"
+      }
+    },
+    {
+      "file": "scan_M_high.mp4",
+      "sha256": "0d3319254742b88f5933e3c7bfbc6c97aa0f7680929f6c5c7460045dca8de443",
+      "record": {
+        "name": "scan_M_high",
+        "title": "Total mass | high",
+        "subtitle": "Fixed mass ratio | M = 1.55 kg | NDO off",
+        "section": "V.C",
+        "speed": 1.0,
+        "rail_basis": "Four independent recorded rail positions",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/scan_M_high/01/flight.csv.gz": "7f6669561eec108afe58a6db9094bf34f262afd480a1d84bc14d24599af25c5e",
+          "experiments/models/scan_M_high.urdf": "a7ef1a3b21cc73f30517a397a862057974bfaa596ce23d2cee895cdc49ca9440",
+          "data/closed_loop/scan_M_high/01/servo.csv.gz": "a98b254ea6b176638fbc8e8f27b508f69aaa5cf3966547b1203a97b33381043b"
+        },
+        "video_sha256": "0d3319254742b88f5933e3c7bfbc6c97aa0f7680929f6c5c7460045dca8de443"
+      }
+    },
+    {
+      "file": "scan_omega10.mp4",
+      "sha256": "659b39549e6801b76500e29676956a53a2d1de68b68c04d6b1651a64b1595312",
+      "record": {
+        "name": "scan_omega10",
+        "title": "Actuator bandwidth | 10 rad/s",
+        "subtitle": "Calm air | fixed effective controller weights | NDO off",
+        "section": "V.C",
+        "speed": 1.0,
+        "rail_basis": "Four independent recorded rail positions",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/scan_omega10/01/flight.csv.gz": "05e2c48188ce014b9ed342db9426fbb13ac0f8859a5c76fbc829d88583b0b146",
+          "experiments/models/scan_omega10.urdf": "94b841d52bbc29edf9f2b1c4e2b691ae22ff3dc5d23e61bdca6d4483fd980c9e",
+          "data/closed_loop/scan_omega10/01/servo.csv.gz": "f9aeee91d8e6972b317a55b63c9f99916f2fea3bda33b3ca861bc82088a50707"
+        },
+        "video_sha256": "659b39549e6801b76500e29676956a53a2d1de68b68c04d6b1651a64b1595312"
+      }
+    },
+    {
+      "file": "scan_omega30.mp4",
+      "sha256": "50b412adb7a6a900695c3536dc828f67f493edfd2b833631be85743f71d46ddc",
+      "record": {
+        "name": "scan_omega30",
+        "title": "Actuator bandwidth | 30 rad/s",
+        "subtitle": "Calm air | fixed effective controller weights | NDO off",
+        "section": "V.C",
+        "speed": 1.0,
+        "rail_basis": "Four independent recorded rail positions",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/scan_omega30/01/flight.csv.gz": "76e8782e8e41a9875095dc87ad37fd12d14e97b4247f303245e7c86fb43edbec",
+          "experiments/models/scan_omega30.urdf": "9b5fefadeda0cc450606e93190e7eedab8ba03f936f22a3396a789ce0364fc6e",
+          "data/closed_loop/scan_omega30/01/servo.csv.gz": "9b36aca67068af4e3a7068eb2f3860390a69d39904f85f601292086032f1fc16"
+        },
+        "video_sha256": "50b412adb7a6a900695c3536dc828f67f493edfd2b833631be85743f71d46ddc"
+      }
+    },
+    {
+      "file": "pressure_cmpc.mp4",
+      "sha256": "559f3b56a7f2afeafb57a7a1a6419eac5922e86fb90a786403730a5561cd8161",
+      "record": {
+        "name": "pressure_cmpc",
+        "title": "Actuator constraints | CMPC",
+        "subtitle": "Calm air | 1.5 m / 2.95 s transfer | NDO off",
+        "section": "V.D",
+        "speed": 1.0,
+        "rail_basis": "Four independent recorded rail positions",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/pressure_cmpc/01/flight.csv.gz": "b1e22b8203cbfa29341d73ba9977dc7d7fbaaed6870df1d91a9ae1e7f679a727",
+          "experiments/models/pressure_cmpc.urdf": "9bde1b508d470fcae5521ae9c72789773681ebc90be399db49c61bd3f9f3879d",
+          "data/closed_loop/pressure_cmpc/01/servo.csv.gz": "8e44706f3452a9af1867669a57ab12a56eba7a7b9a9fb29c11337e3a5fe43b47"
+        },
+        "video_sha256": "559f3b56a7f2afeafb57a7a1a6419eac5922e86fb90a786403730a5561cd8161"
+      }
+    },
+    {
+      "file": "pressure_umpc.mp4",
+      "sha256": "a1e40874beb1c2cf962b1cbf849e1dc80d187f4118ade3d2bbc8f06c471e23ea",
+      "record": {
+        "name": "pressure_umpc",
+        "title": "Actuator constraints | UMPC",
+        "subtitle": "Calm air | 1.5 m / 2.95 s transfer | NDO off",
+        "section": "V.D",
+        "speed": 1.0,
+        "rail_basis": "Four independent recorded rail positions",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/pressure_umpc/01/flight.csv.gz": "5d694678cfaecd6c1381c9753c1b9aeb8c42648a82466030de0ada583dd2fbf4",
+          "experiments/models/pressure_umpc.urdf": "9bde1b508d470fcae5521ae9c72789773681ebc90be399db49c61bd3f9f3879d",
+          "data/closed_loop/pressure_umpc/01/servo.csv.gz": "71995a491cf9af0b0773292d7b8ead7c05ca3c06952eda97b91611c2396e37bf"
+        },
+        "video_sha256": "a1e40874beb1c2cf962b1cbf849e1dc80d187f4118ade3d2bbc8f06c471e23ea"
+      }
+    },
+    {
+      "file": "efficiency_k85.mp4",
+      "sha256": "908e24fcf6f0e8d4316b0221965182592a92b3d2b58c299d94462d699cd1af40",
+      "record": {
+        "name": "efficiency_k85",
+        "title": "Rotor efficiency | 0.85",
+        "subtitle": "Controller coefficient = 0.85 | 5 m/s wind | NDO on",
+        "section": "V.C",
+        "speed": 1.0,
+        "rail_basis": "Measured pair displacements (X joint signs follow the URDF)",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/efficiency_k85/01/flight.csv.gz": "386a1fa33df87fb291534b155adca4bfde273839cd94b30c89c6de1f65bcacf3",
+          "experiments/models/efficiency_k85.urdf": "7dff856ea8644badb13ba77f532006f74778d2c0d46e661e0d85ad01e945c3dd"
+        },
+        "video_sha256": "908e24fcf6f0e8d4316b0221965182592a92b3d2b58c299d94462d699cd1af40"
+      }
+    },
+    {
+      "file": "efficiency_k75.mp4",
+      "sha256": "ec72d103d0444a884f006984a90618d0060d56bd553ee68d2a8f45f1d2ab4889",
+      "record": {
+        "name": "efficiency_k75",
+        "title": "Rotor efficiency | 0.75",
+        "subtitle": "Controller coefficient = 0.85 | 5 m/s wind | NDO on",
+        "section": "V.C",
+        "speed": 1.0,
+        "rail_basis": "Measured pair displacements (X joint signs follow the URDF)",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/efficiency_k75/01/flight.csv.gz": "d1aa5162bf3358cc335eaaf7febb727176d6b7e256cb1e36bf3b381066728b3c",
+          "experiments/models/efficiency_k75.urdf": "669dc129c8b1eedf51238c3dfd5e518c85e463d09f4530eb237c3e7b8af9ceda"
+        },
+        "video_sha256": "ec72d103d0444a884f006984a90618d0060d56bd553ee68d2a8f45f1d2ab4889"
+      }
+    },
+    {
+      "file": "efficiency_k95.mp4",
+      "sha256": "5df47fbf587c2c077f111290f8e8e0199fad6e802083ba5168e35c4a62edb961",
+      "record": {
+        "name": "efficiency_k95",
+        "title": "Rotor efficiency | 0.95",
+        "subtitle": "Controller coefficient = 0.85 | 5 m/s wind | NDO on",
+        "section": "V.C",
+        "speed": 1.0,
+        "rail_basis": "Measured pair displacements (X joint signs follow the URDF)",
+        "rotor_basis": "Measured angular speed integrated with 10:1 visual slowdown; absolute phase is illustrative",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/efficiency_k95/01/flight.csv.gz": "ee9baad348efd3aa2a2cf72f36b33906ed4377fa17d4bc86ee8f98494de9929a",
+          "experiments/models/efficiency_k95.urdf": "3de06b5763e1eb38371c0b56bd8fbecb35293962c53c771cd2ec800f6d8b5729"
+        },
+        "video_sha256": "5df47fbf587c2c077f111290f8e8e0199fad6e802083ba5168e35c4a62edb961"
+      }
+    },
+    {
+      "file": "coordinated_motion.mp4",
+      "sha256": "aae8f28eeb463d6c7ee789a6811144390f17c584b9b993c132353f3a0d5f4e55",
+      "record": {
+        "name": "coordinated_motion",
+        "title": "Translation and yaw coordination",
+        "subtitle": "Calm air | 4 s transfer | 40 deg yaw",
+        "section": "V.B",
+        "speed": 1.0,
+        "rail_basis": "Four recorded rails and recorded rotor joint angles",
+        "rotor_basis": "Recorded joint angles",
+        "width": 1280,
+        "height": 720,
+        "fps": 20,
+        "frames": 1400,
+        "time_range_s": [
+          0.05,
+          70.0
+        ],
+        "repeat": 1,
+        "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+        "sources": {
+          "data/closed_loop/coordinated_motion/01/flight.csv.gz": "2fc16022791bcf31039b166bbf237c7845b6f6ff1599da72d7d3182e6c1fb81a",
+          "experiments/models/coordinated_motion.urdf": "9bde1b508d470fcae5521ae9c72789773681ebc90be399db49c61bd3f9f3879d",
+          "data/coordination/raw_joint_states.csv.gz": "bfd2c4ac6111d36a493cee15c08458d63aa60ab0aafd9a51d6fbbb2915eb367c"
+        },
+        "video_sha256": "aae8f28eeb463d6c7ee789a6811144390f17c584b9b993c132353f3a0d5f4e55"
+      }
+    },
+    {
+      "file": "isolated_actuators.mp4",
+      "sha256": "76bba15b8ce48d7a34da59b6ca022f334540ac0215acbc497ac0b5347462f80e",
+      "chapters": [
+        {
+          "name": "actuator_single",
+          "start_video_s": 0.0,
+          "duration_s": 13.0,
+          "record": {
+            "name": "actuator_single",
+            "title": "Isolated actuator | single",
+            "subtitle": "Recorded joint and free-body motion | half-speed playback",
+            "section": "V.A",
+            "speed": 0.5,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 260,
+            "time_range_s": [
+              0.025,
+              6.5
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/actuator/single/joint_raw.csv.gz": "a1507baa6bba6c37bb62123d94a26f49a7e0f68d6083f570418fecc955601a25",
+              "data/actuator/single/odometry_raw.csv.gz": "02d096820f4c91780c1d88b6550d57e63fe8b522c39a761fd8a155b73c4c8f36",
+              "data/actuator/single/source_urdf.urdf": "6d6803d69dfd7c7f8d218df621edcdc0a5f9c47fd1e48d8337a9d5491b784979"
+            },
+            "video_sha256": "ec6f34b4a561e7b30ec3cfb2c570af979f1b5fb892e0f0b21fb17ae52be4f6cc"
+          }
+        },
+        {
+          "name": "actuator_pair",
+          "start_video_s": 13.0,
+          "duration_s": 13.0,
+          "record": {
+            "name": "actuator_pair",
+            "title": "Isolated actuator | pair",
+            "subtitle": "Recorded joint and free-body motion | half-speed playback",
+            "section": "V.A",
+            "speed": 0.5,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 260,
+            "time_range_s": [
+              0.025,
+              6.5
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/actuator/pair/joint_raw.csv.gz": "b2870a6955dbc2fbcdc42fa883eec49d95c773f1af01f1db573d60f52aeb5148",
+              "data/actuator/pair/odometry_raw.csv.gz": "913ecf5f4b9824eca8621b2cae4eca40705916a400a2c3ed62e73dd16710ea86",
+              "data/actuator/pair/source_urdf.urdf": "6d6803d69dfd7c7f8d218df621edcdc0a5f9c47fd1e48d8337a9d5491b784979"
+            },
+            "video_sha256": "a1acbb3fe2afb5ffcaede75149ac581bde5905e5d5b9067f83986ae39f5f8892"
+          }
+        },
+        {
+          "name": "actuator_dual",
+          "start_video_s": 26.0,
+          "duration_s": 13.0,
+          "record": {
+            "name": "actuator_dual",
+            "title": "Isolated actuator | dual",
+            "subtitle": "Recorded joint and free-body motion | half-speed playback",
+            "section": "V.A",
+            "speed": 0.5,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 260,
+            "time_range_s": [
+              0.025,
+              6.5
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/actuator/dual/joint_raw.csv.gz": "a80c3b38bc292543a51c5b0ed7cc49588b0b6b80dad6377edb0814b928d5628f",
+              "data/actuator/dual/odometry_raw.csv.gz": "4c9c9000a60f8a4481e68ecca9f1cca30ee8c583e256255b58af32ca9c9b508b",
+              "data/actuator/dual/source_urdf.urdf": "6d6803d69dfd7c7f8d218df621edcdc0a5f9c47fd1e48d8337a9d5491b784979"
+            },
+            "video_sha256": "172b03ea6ccd19eaca91f0582cb2db3a7b6af84ba312922bd64498be1cb947d4"
+          }
+        },
+        {
+          "name": "actuator_constraints",
+          "start_video_s": 39.0,
+          "duration_s": 29.0,
+          "record": {
+            "name": "actuator_constraints",
+            "title": "Isolated actuator | constraints",
+            "subtitle": "Recorded joint and free-body motion | half-speed playback",
+            "section": "V.A",
+            "speed": 0.5,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 580,
+            "time_range_s": [
+              0.025,
+              14.5
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/actuator/constraints/joint_raw.csv.gz": "4563948f88e7897dd17936bea48d4545fed8a9bee1a6ec9c99b9bc230c712d77",
+              "data/actuator/constraints/odometry_raw.csv.gz": "96bdbad67df1feffb55abc0fbb77050c3eec141582c31daffc044ce62db7b093",
+              "data/actuator/constraints/source_urdf.urdf": "6d6803d69dfd7c7f8d218df621edcdc0a5f9c47fd1e48d8337a9d5491b784979"
+            },
+            "video_sha256": "1865cecef22fc52783b88f1b63008494ae613dd845e5e5bb92b55ce4b9cc43cf"
+          }
+        }
+      ]
+    },
+    {
+      "file": "multibody_checks.mp4",
+      "sha256": "d2ee2ee30c79b95769a2f98ab10f071b333653c9bdd8e82e296bbde42c432b61",
+      "chapters": [
+        {
+          "name": "multibody_map_weak",
+          "start_video_s": 0.0,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_weak",
+            "title": "Multibody consistency | weak",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_weak/raw_physical_body.csv": "7e85ab8d8300db4ed14cdb0f18302c311a16e7a5e56616a80f77f68ff89da301",
+              "data/multibody/map_weak/raw_joint_states.csv": "88f1b2ba2ecc118879450ee435aaeaedf8461eaa5078d9b0dc010d00364c0c6a",
+              "data/multibody/map_weak/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "d7d0107361855e540bcc87e16c4175de7c80f07d548670ace0b7d61ab6ae4c88"
+          }
+        },
+        {
+          "name": "multibody_map_fast",
+          "start_video_s": 7.05,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_fast",
+            "title": "Multibody consistency | fast",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_fast/raw_physical_body.csv": "b1baec3f4321b41b04ce83624958caf313759bae152fd2f3f07a8f06c2e1c5c7",
+              "data/multibody/map_fast/raw_joint_states.csv": "191748280433cc6c3d1126743455622028fd5fa52ef656cd1064d2bbaf7af51a",
+              "data/multibody/map_fast/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "0905691351b438b724ea34c56c93a87d939935ac826b730c81f6d7bc305fa953"
+          }
+        },
+        {
+          "name": "multibody_map_slow",
+          "start_video_s": 14.1,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_slow",
+            "title": "Multibody consistency | slow",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_slow/raw_physical_body.csv": "f543b7e1e7b078e0312ea7ee6571d2ed317785be688ec81f26969aad1292b1f5",
+              "data/multibody/map_slow/raw_joint_states.csv": "e9eddbd770c3ade5c2412d947b8d9fcaad72b989a5e3f23af055a3aee760a7e9",
+              "data/multibody/map_slow/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "eca2b8d64523d7460a2983ff3daaa0d2ff6b93e1759d091d5f814bc1f2626686"
+          }
+        },
+        {
+          "name": "multibody_map_B_below",
+          "start_video_s": 21.15,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_B_below",
+            "title": "Multibody consistency | B below",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_B_below/raw_physical_body.csv": "82e7012a14b394169ce1b41fed28e7579fc410dd7374097ada6d06a6d5c57f3b",
+              "data/multibody/map_B_below/raw_joint_states.csv": "133db9caa511bbbec88c703d7bcde42473e6461c7cfaeb2e0bf8e45bca471a38",
+              "data/multibody/map_B_below/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "1dcff0250724c4668b819d1a50e4f8f82dfc9afd473e9dd2afe97ba91a01777f"
+          }
+        },
+        {
+          "name": "multibody_map_B_above",
+          "start_video_s": 28.2,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_B_above",
+            "title": "Multibody consistency | B above",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_B_above/raw_physical_body.csv": "a35d2c46d8befdb02113d4489133356819df535f979bc9aa4abbc11c35269641",
+              "data/multibody/map_B_above/raw_joint_states.csv": "f15467c9926fec396869e5ae996be2bdf0dd08a6034c3cb059cfb204af117b84",
+              "data/multibody/map_B_above/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "4ac589cdec92d1cb67956fde7f73eddb6b36042734dbb953638adcd970d941ba"
+          }
+        },
+        {
+          "name": "multibody_map_G1_below",
+          "start_video_s": 35.25,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_G1_below",
+            "title": "Multibody consistency | G1 below",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_G1_below/raw_physical_body.csv": "6478f18f1f8b83c7d18354e42d7b17b16be4e48baaa6474aea48a4e52eb274ea",
+              "data/multibody/map_G1_below/raw_joint_states.csv": "98255cca48ff1c312fef80779e58da8c398b39ba71e90220423189cff893e3a9",
+              "data/multibody/map_G1_below/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "f341b14c2cbdbed635fa278ccbf3b2f5a03134b060aa34670fe5b697aaf3794c"
+          }
+        },
+        {
+          "name": "multibody_map_G1_above",
+          "start_video_s": 42.3,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_G1_above",
+            "title": "Multibody consistency | G1 above",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_G1_above/raw_physical_body.csv": "3d89d3d657cdeea3dfe07c8b42d8df96ce592eb5300850d5f9c1884cfd4b758e",
+              "data/multibody/map_G1_above/raw_joint_states.csv": "9cc3118d6754973d2870c4dfddd8ade1f9feddf7f75451f616352b69ebbe85ae",
+              "data/multibody/map_G1_above/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "5a91c04c4fb89fec8361f69cb053a26156fc1de716a7ebc5f1f07ecb7b0bd974"
+          }
+        },
+        {
+          "name": "multibody_map_G2_below",
+          "start_video_s": 49.349999999999994,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_G2_below",
+            "title": "Multibody consistency | G2 below",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_G2_below/raw_physical_body.csv": "bf2d3b038489767ff6b1b3c41d68e3235ea750b76a22673a96a0e8233d033f59",
+              "data/multibody/map_G2_below/raw_joint_states.csv": "9564104d6e53df093766f2baa63effb5ef9f7b4b0fa263fa114a2c5ca9a1335c",
+              "data/multibody/map_G2_below/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "1f1a46bc2a4f3517f449393a5010cd5a9d14dbed5afbb0448270303915850d82"
+          }
+        },
+        {
+          "name": "multibody_map_G2_above",
+          "start_video_s": 56.39999999999999,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_G2_above",
+            "title": "Multibody consistency | G2 above",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_G2_above/raw_physical_body.csv": "b19d09bb7e2633cf168aa1b042a67f9db66d62ff08673e2f2ed4451d1d20bac5",
+              "data/multibody/map_G2_above/raw_joint_states.csv": "126af215e348383a894183c958bb6f6e73a6a048e27735a51131c8f7fef7d681",
+              "data/multibody/map_G2_above/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "cc0468394c0b63a97f602cee9c339ba121eb8f8973aa55897770f7950d04812c"
+          }
+        },
+        {
+          "name": "multibody_map_G3_below",
+          "start_video_s": 63.44999999999999,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_G3_below",
+            "title": "Multibody consistency | G3 below",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_G3_below/raw_physical_body.csv": "8e8979aaa5e1e2513557658bd89b500c6cab0c4f9eecd80c9f78f74a2d268fe1",
+              "data/multibody/map_G3_below/raw_joint_states.csv": "fc18d48017f688fbb32292e81786c226d284637c7d2eb9138d5372e171c007d4",
+              "data/multibody/map_G3_below/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "b3e4063c7b817c8d2a6c34414c38eafb78033b05ee7263121d030fd17cea9840"
+          }
+        },
+        {
+          "name": "multibody_map_G3_above",
+          "start_video_s": 70.49999999999999,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_G3_above",
+            "title": "Multibody consistency | G3 above",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_G3_above/raw_physical_body.csv": "6a3b333188d4c2c35f3cf402da04e3e63f458b05b2ae873e20c745ec145edbf7",
+              "data/multibody/map_G3_above/raw_joint_states.csv": "f414ea60c1c3cd501650aa0e48155343b3b0d90bc74f522956d6a4399fc0b39b",
+              "data/multibody/map_G3_above/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "ff30970ed1cdbaf656fae67b5c6b62a49e942587bd6447ea8209a57622a65488"
+          }
+        },
+        {
+          "name": "multibody_map_G4_below",
+          "start_video_s": 77.54999999999998,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_G4_below",
+            "title": "Multibody consistency | G4 below",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_G4_below/raw_physical_body.csv": "61b9465a2a07723fd06d6b133195f972405a29f0951b5bb5c3770d59d7266ffe",
+              "data/multibody/map_G4_below/raw_joint_states.csv": "f161c2b107c9ee12896dc6fdf0fa668b93d068c077a82fc23b565ca1f00f8715",
+              "data/multibody/map_G4_below/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "b6323c1d5503ccc986482f316c77541737ed70c3fe39737da77106ed15e73972"
+          }
+        },
+        {
+          "name": "multibody_map_G4_above",
+          "start_video_s": 84.59999999999998,
+          "duration_s": 7.05,
+          "record": {
+            "name": "multibody_map_G4_above",
+            "title": "Multibody consistency | G4 above",
+            "subtitle": "0.35 s recorded test | 20x slow motion | fixed rotor joints",
+            "section": "V.A",
+            "speed": 0.05,
+            "rail_basis": "Four recorded rail positions",
+            "rotor_basis": "Recorded fixed rotor joint angles",
+            "width": 1280,
+            "height": 720,
+            "fps": 20,
+            "frames": 141,
+            "time_range_s": [
+              0.001,
+              0.351
+            ],
+            "repeat": null,
+            "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
+            "sources": {
+              "data/multibody/map_G4_above/raw_physical_body.csv": "cccb4bd774e64e8ebfac2340d99bee14635507173be73253870a5c44a1eec71f",
+              "data/multibody/map_G4_above/raw_joint_states.csv": "3707221b99bc959c927fc25c6ecb8f976636b47e68b87a14fc03de5881997c9f",
+              "data/multibody/map_G4_above/aligned_source.urdf": "9c1aba7f2171e13a8f636dee4015fe87625a48ceabfd73026625852ff8c56868"
+            },
+            "video_sha256": "050d3afb686a6e1b52cae1a31fec27f54c529b4e544d6fe668041cd73c9990bb"
+          }
+        }
+      ]
+    }
+  ],
+  "previews": [
+    {
+      "file": "coordinated_motion.gif",
+      "source_video": "coordinated_motion.mp4",
+      "start_video_s": 7.0,
+      "duration_s": 12.0,
+      "fps": 8,
+      "sha256": "f41bde13351da60d6410667ceb5ac0151bc73af48bb0d864efc91f172721bec6"
+    },
+    {
+      "file": "wind_cmpc_ndo.gif",
+      "source_video": "wind_cmpc_ndo.mp4",
+      "start_video_s": 7.0,
+      "duration_s": 12.0,
+      "fps": 8,
+      "sha256": "e66b0eb3bca0b75b977df7136ccc9c8439de963638516d825f1c4e81b92a6d86"
+    },
+    {
+      "file": "pressure_cmpc.gif",
+      "source_video": "pressure_cmpc.mp4",
+      "start_video_s": 7.0,
+      "duration_s": 12.0,
+      "fps": 8,
+      "sha256": "f24da95e9a149e116bf1bfd3076edd39c8d90ef1af4f2435ff717c2efb0eaaa4"
+    },
+    {
+      "file": "pressure_umpc.gif",
+      "source_video": "pressure_umpc.mp4",
+      "start_video_s": 7.0,
+      "duration_s": 12.0,
+      "fps": 8,
+      "sha256": "8f5f26fa3c5fe2638cff6e4456ccf62f956c1f47349e70c5c048ccf39e1a3db1"
+    },
+    {
+      "file": "isolated_actuators.gif",
+      "source_video": "isolated_actuators.mp4",
+      "start_video_s": 39.0,
+      "duration_s": 10.0,
+      "fps": 8,
+      "sha256": "97f72cb299049f3b07092b708d186aebdb65a4df107639275a4fb1bcc106a94a"
+    },
+    {
+      "file": "multibody_checks.gif",
+      "source_video": "multibody_checks.mp4",
+      "start_video_s": 7.05,
+      "duration_s": 7.0,
+      "fps": 8,
+      "sha256": "c58b37453466951400481f4a0d81f2a8c2074073add0ee4bdca3880bdb3809f6"
+    }
+  ]
+}

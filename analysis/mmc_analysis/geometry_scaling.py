@@ -85,7 +85,7 @@ def mass_ratio_table() -> None:
     drive_n = drive / drive_base
 
     write_csv(
-        "fig04_mass_ratio_effectiveness_tradeoff_source",
+        "mass_ratio_effectiveness_tradeoff",
         ["mu", "single_slider_mass_kg", "total_mass_kg", "I_e_kgm2", "tau_max_Nm",
          "attitude_accel_rad_s2", "drive_force_N", "tau_norm", "acc_norm", "drive_norm"],
         np.column_stack([mu, m, M, Ie, tau, acc, drive, tau_n, acc_n, drive_n]),
@@ -105,7 +105,7 @@ def body_size_table() -> None:
     scaled_n = scaled / baseline
 
     write_csv(
-        "fig05_body_size_authority_source",
+        "body_size_authority",
         ["body_size_l_m", "I_e_kgm2", "authority_fixed_stroke_norm", "authority_geometric_scaling_norm"],
         np.column_stack([l, Ie, fixed_n, scaled_n]),
     )
