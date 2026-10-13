@@ -62,7 +62,7 @@ def main():
     preview_records=[]
     for name,(start,duration) in excerpts.items():
         p=previews/(name+'.gif')
-        run('ffmpeg','-y','-v','error','-threads','2','-ss',start,'-t',duration,'-i',args.output/(name+'.mp4'),'-filter_complex_threads','1','-vf','fps=8,scale=640:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=bayer:bayer_scale=3','-loop','0',p)
+        run('ffmpeg','-y','-v','error','-threads','2','-ss',start,'-t',duration,'-i',args.output/(name+'.mp4'),'-filter_complex_threads','1','-vf','fps=8,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=bayer:bayer_scale=3','-loop','0',p)
         preview_records.append({'file':p.name,'source_video':name+'.mp4','start_video_s':start,'duration_s':duration,'fps':8,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
     manifest={'format_version':1,'kind':'Recorded simulation playback','renderer':'Gazebo Rendering 8 / Ogre2',
               'closed_loop_selection':'All 17 profiles, recorded repetition 1; complete controller history through 70 s',

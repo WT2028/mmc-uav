@@ -108,13 +108,17 @@ Click a preview to open the complete MP4. Preview excerpts retain the indicated
 playback speed. The [video guide](videos/README.md) provides source records,
 chapter times and commands for rendering the videos.
 
-| Translation and yaw | Crosswind with CMPC + NDO |
-|---|---|
-| [![Translation and yaw](docs/media/previews/coordinated_motion.gif)](videos/coordinated_motion.mp4) | [![CMPC and NDO](docs/media/previews/wind_cmpc_ndo.gif)](videos/wind_cmpc_ndo.mp4) |
-| **Actuator-demanding CMPC** | **Actuator-demanding UMPC** |
-| [![Constrained MPC](docs/media/previews/pressure_cmpc.gif)](videos/pressure_cmpc.mp4) | [![Unconstrained MPC](docs/media/previews/pressure_umpc.gif)](videos/pressure_umpc.mp4) |
-| **Isolated moving masses** | **Multibody motion** |
-| [![Actuator positioning](docs/media/previews/isolated_actuators.gif)](videos/isolated_actuators.mp4) | [![Multibody tests](docs/media/previews/multibody_checks.gif)](videos/multibody_checks.mp4) |
+[![Translation and yaw](docs/media/previews/coordinated_motion.gif)](videos/coordinated_motion.mp4)
+
+[![Crosswind with CMPC and NDO](docs/media/previews/wind_cmpc_ndo.gif)](videos/wind_cmpc_ndo.mp4)
+
+[![Actuator-demanding CMPC](docs/media/previews/pressure_cmpc.gif)](videos/pressure_cmpc.mp4)
+
+[![Actuator-demanding UMPC](docs/media/previews/pressure_umpc.gif)](videos/pressure_umpc.mp4)
+
+[![Isolated moving masses](docs/media/previews/isolated_actuators.gif)](videos/isolated_actuators.mp4)
+
+[![Multibody tests](docs/media/previews/multibody_checks.gif)](videos/multibody_checks.mp4)
 
 ## License
 

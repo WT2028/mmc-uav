@@ -29,6 +29,12 @@ model's 10:1 rotor visualization slowdown. The coordinated and isolated tests
 use recorded rotor joint angles. The displayed time and state values are taken
 from the same history as the rendered vehicle.
 
+Overlays show the experiment, simulation time, position (XYZ, metres), and
+roll/pitch/yaw (RPY, degrees). Slowed clips also show their playback rate. In the
+XY inset, +X points right and +Y points up; A and B mark the start and target,
+and teal traces the recorded motion. A scale bar indicates distance. Comparison
+profiles share the same map range, including the complete pressure-test motion.
+
 ## Render the videos
 
 The normal numerical analyses do not require video tools. Rendering additionally

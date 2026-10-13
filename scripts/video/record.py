@@ -171,23 +171,53 @@ def prepare_scene(item, out, width, height):
     return poses
 
 
-def draw_map(item, index, size=(286,230)):
-    im=Image.new('RGB',size,'#ffffff');d=ImageDraw.Draw(im);font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',13)
+def draw_map(item, index, size=(380,350)):
+    im=Image.new('RGB',size,'#ffffff');d=ImageDraw.Draw(im)
+    font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',26)
     pos=item['pos'][:,:2]; ref=item['reference']; data=np.vstack([pos,ref[:,:2]]) if ref is not None else pos
     center=(data.min(axis=0)+data.max(axis=0))/2; span=max(np.ptp(data,axis=0).max(),.2 if ref is None else 1.)*1.2
     # Same overview range for all wind/scan/efficiency cases; pressure includes the full UMPC excursion.
     if item['name'].startswith(('wind_','scan_','efficiency_')):center=np.array([0.,1.5]);span=4.2
     if item['name'].startswith('pressure_'):center=np.array([.7,0.]);span=16.
-    def screen(p):return (int(size[0]/2+(p[0]-center[0])/span*190),int(128-(p[1]-center[1])/span*190))
-    d.text((14,10),'World XY | actual path',font=font,fill='#26364a')
+    scale=270/span
+    def screen(p):return (int(size[0]/2+(p[0]-center[0])*scale),int(175-(p[1]-center[1])*scale))
+    d.text((18,10),'XY',font=font,fill='#26364a')
     if ref is not None:
-        a,b=screen(ref[0]);c,e=screen(ref[1]);d.line((a,b,c,e),fill='#a6aeb8',width=2)
-        d.ellipse((a-3,b-3,a+3,b+3),fill='#66778b');d.text((a+5,b-15),'A',font=font,fill='#66778b')
-        d.line((c-5,e-5,c+5,e+5),fill='#ca684d',width=2);d.line((c-5,e+5,c+5,e-5),fill='#ca684d',width=2);d.text((c+6,e-15),'B',font=font,fill='#a65038')
+        a,b=screen(ref[0]);c,e=screen(ref[1]);d.line((a,b,c,e),fill='#a6aeb8',width=3)
+        d.ellipse((a-6,b-6,a+6,b+6),fill='#66778b')
+        d.line((c-8,e-8,c+8,e+8),fill='#ca684d',width=4);d.line((c-8,e+8,c+8,e-8),fill='#ca684d',width=4)
     path=[screen(p) for p in pos[:index+1:2]]
-    if len(path)>1:d.line(path,fill='#197f87',width=2)
-    x,y=screen(pos[index]);d.ellipse((x-4,y-4,x+4,y+4),fill='#126a72')
-    d.text((14,size[1]-22),f'View width: {span:.2f} m   x > / y ^',font=font,fill='#66778b')
+    if len(path)>1:d.line(path,fill='#197f87',width=4)
+    x,y=screen(pos[index]);d.ellipse((x-8,y-8,x+8,y+8),fill='#126a72')
+    if ref is not None:
+        # Opposite sides keep the nearby pressure-test targets distinguishable.
+        label_y=b-32 if a<160 and b>260 else b+8
+        d.text((a-30,label_y),'A',font=font,fill='#66778b')
+        d.text((c+12,e-32),'B',font=font,fill='#a65038')
+    # A scale bar replaces the verbose viewport description; +X is right, +Y up.
+    length=10**math.floor(math.log10(span/4))
+    length*=next(v for v in [5,2,1] if v*length<=span/4)
+    end=22+round(length*scale)
+    d.line((22,size[1]-22,end,size[1]-22),fill='#66778b',width=3)
+    for x in [22,end]:d.line((x,size[1]-28,x,size[1]-16),fill='#66778b',width=3)
+    d.text((end+12,size[1]-39),f'{length:g} m',font=font,fill='#66778b')
+    return im
+
+
+def annotate(im, item, index, attitude, fonts):
+    d=ImageDraw.Draw(im); color='#20334a'
+    d.rectangle((0,0,1280,82),fill='#f8fafc')
+    title=item['title'].replace('Translation and yaw coordination','Translation + yaw').replace('Multibody consistency','Multibody').replace('Isolated actuator','Actuator')
+    d.text((30,21),title,font=fonts[0],fill=color)
+    time=f't = {item["t"][index]:.2f} s'
+    if item['speed']!=1.:time+=f'  |  {item["speed"]:g}×'
+    d.text((1250,24),time,font=fonts[1],fill=color,anchor='ra')
+    im.paste(draw_map(item,index),(876,280))
+    d=ImageDraw.Draw(im)
+    d.rectangle((0,642,1280,720),fill='#f8fafc')
+    def values(array):return '  '.join(f'{0. if abs(v)<.005 else v:.2f}' for v in array)
+    d.text((30,663),'XYZ (m)  '+values(item['pos'][index]),font=fonts[1],fill=color)
+    d.text((654,663),'RPY (°)  '+values(attitude[index]),font=fonts[1],fill=color)
     return im
 
 
@@ -195,7 +225,8 @@ def render(item, args, binary):
     width,height=1280,720; out=args.work/item['name'];out.mkdir(parents=True,exist_ok=True)
     destination=args.output/(item['name']+'.mp4');destination.parent.mkdir(parents=True,exist_ok=True)
     prepare_scene(item,out,width,height)
-    fonts=[ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans'+('-Bold' if s==28 else '')+'.ttf',s) for s in [28,18,17]]
+    fonts=[ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',36),
+           ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',32)]
     readfd,writefd=os.pipe()
     with (out/'render.log').open('wb') as log:
         renderer=subprocess.Popen([str(binary),str(out/'scene.txt'),str(out/'poses.bin'),str(writefd)],pass_fds=[writefd],stdout=log,stderr=log)
@@ -207,19 +238,7 @@ def render(item, args, binary):
                 for i,t in enumerate(item['t']):
                     raw=stream.read(width*height*3)
                     if len(raw)!=width*height*3:raise RuntimeError(f'Renderer stopped at frame {i}; see {out}/render.log')
-                    im=Image.frombytes('RGB',(width,height),raw);d=ImageDraw.Draw(im)
-                    d.rectangle((0,0,width,104),fill='#f8fafc')
-                    d.text((30,18),item['title'],font=fonts[0],fill='#20334a')
-                    d.text((31,59),item['subtitle'],font=fonts[1],fill='#506278')
-                    d.text((1060,20),f't = {t:.2f} s',font=fonts[1],fill='#20334a')
-                    d.text((1010,60),f'Replay  {item["speed"]:g}x',font=fonts[1],fill='#506278')
-                    im.paste(draw_map(item,i),(962,445))
-                    d=ImageDraw.Draw(im)
-                    xyz=item['pos'][i];rpy=attitude[i]
-                    d.rectangle((0,665,940,720),fill='#f8fafc')
-                    d.text((30,672),f'Position (m)   {xyz[0]: .3f}   {xyz[1]: .3f}   {xyz[2]: .3f}',font=fonts[2],fill='#43566e')
-                    d.text((490,672),f'Roll / pitch / yaw (deg)   {rpy[0]: .2f} / {rpy[1]: .2f} / {rpy[2]: .2f}',font=fonts[2],fill='#43566e')
-                    d.text((30,699),f'Section {item["section"]}  |  Recorded simulation  |  Tracking camera',font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',13),fill='#61748a')
+                    im=annotate(Image.frombytes('RGB',(width,height),raw),item,i,attitude,fonts)
                     ffmpeg.stdin.write(im.tobytes())
                     if i==min(len(item['t'])-1,int(10*args.fps/item['speed'])):im.save(out/'sample.png')
             ffmpeg.stdin.close()
