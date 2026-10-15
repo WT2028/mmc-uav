@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared MPC objective, coordinate transformation and measured-error integral."""
+"""Shared reference correction and the comparison controllers' MPC design."""
 from __future__ import annotations
 
 import csv
@@ -35,7 +35,36 @@ FIELDS = ['controller_time_s', 'reference_x_m', 'reference_y_m',
 def make_controller(kind, production_mpc, configuration_dict=None, node=None):
     configuration = configuration_dict or {}
     if kind in ('pid', 'lqr'):
-        return make_baseline(kind, production_mpc, configuration)
+        baseline_configuration = dict(configuration)
+        integral_settings = baseline_configuration.pop('horizontal_integral', None)
+        selected = make_baseline(kind, production_mpc, baseline_configuration)
+        if integral_settings is None:
+            return selected
+        integral = HorizontalTrackingIntegral(**integral_settings)
+        if node is None:
+            if integral.enabled:
+                raise ValueError('Position integral requires the existing node measurements/reference')
+            return selected
+        out = Path(os.environ['MMC_COMPARISON_OUT'])
+        _install_reference_correction(node, production_mpc, integral, out)
+        original_record = selected.design_record
+
+        def baseline_record():
+            result = original_record()
+            result['shared_reference_correction'] = {
+                'configuration': integral_settings,
+                'location': 'After common outer reference generation, before common thrust retargeting',
+                'measurement': 'Own measured horizontal position error; no observer or wind truth',
+                'current_row': 'Same corrected attitude and body-rate reference; PID/LQR use current row only',
+            }
+            return result
+        selected.design_record = baseline_record
+        source = Path(tracking_design.__file__).absolute()
+        (out / 'loaded_tracking_design.json').write_text(json.dumps({
+            'module_file': str(source),
+            'module_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
+            'configuration': integral_settings, 'applies_to': kind}, indent=2) + '\n')
+        return selected
     if kind not in ('constrained_mpc', 'unconstrained_mpc'):
         raise ValueError('Unknown MMC controller: ' + str(kind))
     unknown = set(configuration) - {'mpc', 'horizontal_integral', 'qp_coordinates', 'constraint_design'}
@@ -90,7 +119,7 @@ def make_controller(kind, production_mpc, configuration_dict=None, node=None):
             'solver_internal_coordinates': coordinates,
             'retained_decision_coordinates': 'Original input increments; native absolute inputs are separately preserved',
             'ordinary_horizontal_error_integral': bool(integral.enabled),
-            'integral_location': 'MPC-owned target trim after the unmodified common reference generator',
+            'integral_location': 'Shared target trim after the unmodified common reference generator',
             'integral_measurements': 'Existing body-origin odometry and common sample-held position reference',
             'integral_preview': 'Current trim plus k*dt times its measured rate over the common preview; bounded by the declared trim and attitude limits',
             'NDO_estimates_or_wind_truth_used_by_integral': False,
@@ -113,6 +142,12 @@ def make_controller(kind, production_mpc, configuration_dict=None, node=None):
         if integral.enabled:
             raise ValueError('MPC position integral requires the existing node measurements/reference')
         return selected
+    _install_reference_correction(node, mpc, integral, out)
+    return selected
+
+
+def _install_reference_correction(node, mpc, integral, out):
+    """Apply the same measured-error correction for every wind controller."""
     original_build = node._build_attitude_reference_sequence
     handle = (out / 'mpc_integral.csv').open('w', newline='')
     writer = csv.DictWriter(handle, fieldnames=FIELDS)
@@ -161,7 +196,7 @@ def make_controller(kind, production_mpc, configuration_dict=None, node=None):
             handle.flush()
         return target
     node._build_attitude_reference_sequence = types.MethodType(build_target, node)
-    return selected
+    return handle
 
 
 def finalize(out):

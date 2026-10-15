@@ -4,18 +4,18 @@
   "controller": "pid",
   "configuration": {
     "kp": [
-      18,
-      18,
+      4,
+      4,
       2.25
     ],
     "ki": [
-      14,
-      14,
+      0.35,
+      0.35,
       0.12
     ],
     "kd": [
-      7.2,
-      7.2,
+      3,
+      3,
       2.7
     ],
     "derivative_time_constant_s": 0.025,
@@ -24,7 +24,15 @@
       0.25,
       0.25
     ],
-    "antiwindup_tracking_time_s": 0.25
+    "antiwindup_tracking_time_s": 0.25,
+    "horizontal_integral": {
+      "ki": [
+        1.2,
+        0.2
+      ],
+      "acceleration_limit": 1.2,
+      "trim_limit_deg": 8.0
+    }
   },
   "protocol": {
     "target_A_m": [

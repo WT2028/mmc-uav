@@ -6,7 +6,7 @@
   "videos": [
     {
       "file": "wind_pid.mp4",
-      "sha256": "da1bae911eb6c0a44cf1639ea834a933685cc1cdd53169d50d5fff97030b6d83",
+      "sha256": "2dd8ef49355913d7aec33a5e9e884dd5625aea5132eaae1ba170afe6149d48b1",
       "record": {
         "name": "wind_pid",
         "title": "Crosswind | PID",
@@ -26,15 +26,15 @@
         "repeat": 1,
         "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
         "sources": {
-          "data/closed_loop/wind_pid/01/flight.csv.gz": "cecc87599e4f6c854ed041eb0f232d0c7ebfb526dbd570590408c1914e41aa94",
+          "data/closed_loop/wind_pid/01/flight.csv.gz": "200637670f20149e87536152a5360a7a59cf64100dff0ab20e6a50a064536fac",
           "experiments/models/wind_pid.urdf": "9bde1b508d470fcae5521ae9c72789773681ebc90be399db49c61bd3f9f3879d"
         },
-        "video_sha256": "da1bae911eb6c0a44cf1639ea834a933685cc1cdd53169d50d5fff97030b6d83"
+        "video_sha256": "2dd8ef49355913d7aec33a5e9e884dd5625aea5132eaae1ba170afe6149d48b1"
       }
     },
     {
       "file": "wind_lqr.mp4",
-      "sha256": "adad6c106d66f2443820784766db1d606832f59e24c97054a16e3641afb56da0",
+      "sha256": "b5c1a9a5d506c3a77f83e9933615e09424fecc483f8ac0ecfe62d059271f8598",
       "record": {
         "name": "wind_lqr",
         "title": "Crosswind | LQR",
@@ -54,10 +54,10 @@
         "repeat": 1,
         "playback": "Gazebo Rendering 8 / Ogre2 visualization of recorded measurements; no physics rerun",
         "sources": {
-          "data/closed_loop/wind_lqr/01/flight.csv.gz": "6cf32c2a7c414179ac9bb8fbb83a517a92ec4f03adde8357e391d2d376ca9f44",
+          "data/closed_loop/wind_lqr/01/flight.csv.gz": "9c05714d1e44536a511d3e43dcd4ef4b9a7d5d5735dcf6749e35e94f698d7668",
           "experiments/models/wind_lqr.urdf": "9bde1b508d470fcae5521ae9c72789773681ebc90be399db49c61bd3f9f3879d"
         },
-        "video_sha256": "adad6c106d66f2443820784766db1d606832f59e24c97054a16e3641afb56da0"
+        "video_sha256": "b5c1a9a5d506c3a77f83e9933615e09424fecc483f8ac0ecfe62d059271f8598"
       }
     },
     {

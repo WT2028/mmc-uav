@@ -31,8 +31,8 @@ By default, each invocation starts from an independent reset and records 70 s
 of controller time. The output includes the experiment configuration, ROS
 parameters, controller design, source hash, flight CSV and independent sensor
 histories. `completion.json` records completion status; the analysis scripts calculate
-tracking performance from the measurements. MPC profiles also save integral
-and solver diagnostics.
+tracking performance from the measurements. Wind profiles also save integral
+diagnostics; MPC profiles additionally save solver diagnostics.
 
 Within a profile, `ros_parameters` initializes the ROS node, and `configuration`
 then applies the experiment's controller settings. For example, both pressure
@@ -45,7 +45,11 @@ controller, with pressure-case outer-loop settings also captured in
 The comparison factories share the measured-state input, rotor allocation and
 physical protection. Within the pressure pair, model, costs, reference,
 outer-loop settings and NDO state are common; the predictive inequalities are
-the controlled difference. Wind NDO on/off profiles share the same MPC design.
+the controlled difference. All four wind controllers share the same bounded
+position-error integral correction of the attitude reference, with horizontal
+gains [1.2, 0.2], acceleration bound 1.2 m/s² and attitude-trim bound 8°. PID
+and LQR use its current attitude and body-rate reference. Wind NDO on/off
+profiles share the same MPC design.
 The mass/bandwidth scans align the prediction parameters to the CAD mass family
 and retain the nominal effective cost and reference-coordinator settings.
 
